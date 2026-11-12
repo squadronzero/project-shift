@@ -3,7 +3,7 @@ import { useState } from 'react';
 import T, { MONTHS } from '../content/text.js';
 import { fmt } from '../lib/format.js';
 
-export default function MonthGrid({ monthly, variable, theme, falseAlarm, recordEnd }) {
+export default function MonthGrid({ monthly, variable, theme, falseAlarm, recordEnd, mapMonth, onPickMonth, syncNote }) {
   const [tip, setTip] = useState(null);
   const rows = monthly.rows;
   const years = [...new Set(rows.map((r) => r.year))];
@@ -13,7 +13,7 @@ export default function MonthGrid({ monthly, variable, theme, falseAlarm, record
   const inProgress = rows.some((r) => r.incomplete && !r.nodata);   // the latest month: the record ends inside it
   return (
     <figure className="chart">
-      <div className="monthgrid">
+      <div className={onPickMonth ? 'monthgrid pickable' : 'monthgrid'}>
         <svg data-export="svg" width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={T.monthGrid.label}>
           {MONTHS.map((m, i) => <text key={m} x={left + i * (cell + gap) + cell / 2} y={10} className="axis" textAnchor="middle">{m[0]}</text>)}
           {years.map((y, yi) => <text key={y} x={0} y={top + yi * (cell + gap) + cell * 0.72} className="axis">{y}</text>)}
@@ -26,7 +26,7 @@ export default function MonthGrid({ monthly, variable, theme, falseAlarm, record
             const x = left + r.month * (cell + gap), y = top + years.indexOf(r.year) * (cell + gap);
             const fill = r.cls ? theme.cls[r.cls] : r.incomplete || r.notComparable ? 'url(#hatch)' : theme.zero;
             return (
-              <g key={`${r.year}-${r.month}`} onMouseEnter={() => setTip({ r, x, y })} onMouseLeave={() => setTip(null)} onClick={() => setTip({ r, x, y })}>
+              <g key={`${r.year}-${r.month}`} onMouseEnter={() => setTip({ r, x, y })} onMouseLeave={() => setTip(null)} onClick={() => { setTip({ r, x, y }); onPickMonth?.(`${r.year}-${String(r.month + 1).padStart(2, '0')}`); }}>
                 <rect x={x} y={y} width={cell} height={cell} rx={3} fill={fill} />
                 {r.modisEra && r.cls && r.cls !== 'normal' && r.cls !== 'low' &&
                   <circle cx={x + cell - 4} cy={y + 4} r={2} fill={theme.surface} />}
@@ -35,6 +35,13 @@ export default function MonthGrid({ monthly, variable, theme, falseAlarm, record
             );
           })}
         </svg>
+        {(() => {   // the map month, marked as an overlay (not part of the SVG download)
+          if (!mapMonth) return null;
+          const yi = years.indexOf(+mapMonth.slice(0, 4));
+          if (yi < 0) return null;
+          return <div className="mapmark" aria-hidden="true" title={T.sync.mark}
+            style={{ left: left + (+mapMonth.slice(5, 7) - 1) * (cell + gap) - 2, top: top + yi * (cell + gap) - 2, width: cell + 4, height: cell + 4 }} />;
+        })()}
         {tip && (
           <div className="hover" style={{ left: Math.min(tip.x + 24, width - 40), top: tip.y + 20 }}>
             <b>{MONTHS[tip.r.month]} {tip.r.year}</b><br />
@@ -56,6 +63,7 @@ export default function MonthGrid({ monthly, variable, theme, falseAlarm, record
         {(anyCloud || monthly.cloudUntil) && <span><span className="dot cloud" style={{ background: theme.cloud }} /> {T.monthGrid.cloudy}</span>}
       </figcaption>
       {monthly.cloudUntil && <p className="small">{T.monthGrid.cloudUntil(monthly.cloudUntil)}</p>}
+      {syncNote}
     </figure>
   );
 }

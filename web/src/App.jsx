@@ -6,6 +6,7 @@ import Explore from './pages/Explore.jsx';
 import Switch2012 from './pages/Switch2012.jsx';
 import Validation from './pages/Validation.jsx';
 import Method from './pages/Method.jsx';
+import Nav from './components/Nav.jsx';
 import { dateOf, json, lastDataDay } from './lib/data.js';
 
 import { readHash, writeHash } from './lib/url.js';
@@ -45,12 +46,7 @@ export default function App() {
             </select>
           </label>
         </div>
-        <nav aria-label="Views">
-          {VIEWS.map((id) => (
-            <button key={id} className={current === id ? 'tab on' : 'tab'} aria-current={current === id ? 'page' : undefined}
-              onClick={() => setCurrent(id)}>{T.views[id]}</button>
-          ))}
-        </nav>
+        <Nav views={VIEWS} current={current} setCurrent={setCurrent} />
       </header>
 
       {error && <main className="page"><p className="notice" role="alert">{error}</p></main>}

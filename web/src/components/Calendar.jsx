@@ -9,7 +9,7 @@ export function calendarLegend(theme) {
     [theme.nodataLine, T.calendar.noData]];
 }
 
-export default function Calendar({ meta, series, variable, theme }) {
+export default function Calendar({ meta, series, variable, theme, mapMonth, onPickMonth, syncNote }) {
   const ref = useRef(null);
   const wrap = useRef(null);
   const [tip, setTip] = useState(null);
@@ -82,16 +82,33 @@ export default function Calendar({ meta, series, variable, theme }) {
     g.lineTo(sx, top + (sy + 1) * ch - 0.5); g.lineTo(width - 4, top + (sy + 1) * ch - 0.5); g.stroke();
   }, [width, height, v, series.nodata, bins, theme, meta, first, years, cw, ch, switchDay]);
 
-  const onMove = (e) => {
+  const locate = (e) => {
     const r = ref.current.getBoundingClientRect();
     const x = e.clientX - r.left, y = e.clientY - r.top;
     const yr = Math.floor((y - top) / ch), doy = Math.floor((x - left) / cw);
-    if (yr < 0 || yr >= years || doy < 0 || doy > 365) return setTip(null);
+    if (yr < 0 || yr >= years || doy < 0 || doy > 365) return null;
     const t = Date.UTC(first + yr, 0, 1) + doy * 864e5;
     const k = Math.round((t - Date.parse(meta.start + 'T00:00:00Z')) / 864e5);
-    if (k < 0 || k >= meta.days || new Date(t).getUTCFullYear() !== first + yr) return setTip(null);
-    setTip({ x, y, k });
+    if (k < 0 || k >= meta.days || new Date(t).getUTCFullYear() !== first + yr) return null;
+    return { x, y, k };
   };
+  const onMove = (e) => setTip(locate(e));
+  // UI lab shell: a click also moves the map to that day's month (and the true-colour picture to that day)
+  const onClick = (e) => {
+    const hit = locate(e);
+    setTip(hit);
+    if (hit && onPickMonth) { const iso = dateOf(meta, hit.k).toISOString(); onPickMonth(iso.slice(0, 7), +iso.slice(8, 10)); }
+  };
+  // the map month, marked over the canvas (an overlay, so it never enters the PNG download)
+  let mark = null;
+  if (mapMonth) {
+    const yr = +mapMonth.slice(0, 4) - first, mo = +mapMonth.slice(5, 7) - 1;
+    if (yr >= 0 && yr < years) {
+      const d0 = Math.round((Date.UTC(first + yr, mo, 1) - Date.UTC(first + yr, 0, 1)) / 864e5);
+      const n = Math.round((Date.UTC(first + yr, mo + 1, 1) - Date.UTC(first + yr, mo, 1)) / 864e5);
+      mark = { left: left + d0 * cw - 1, top: top + yr * ch - 1.5, width: n * cw + 2, height: ch + 2 };
+    }
+  }
 
   let tipText = null;
   if (tip) {
@@ -106,8 +123,9 @@ export default function Calendar({ meta, series, variable, theme }) {
 
   return (
     <figure className="chart" ref={wrap}>
-      <div className="calendar" onMouseMove={onMove} onClick={onMove} onMouseLeave={() => setTip(null)}>
+      <div className={onPickMonth ? 'calendar pickable' : 'calendar'} onMouseMove={onMove} onClick={onClick} onMouseLeave={() => setTip(null)}>
         <canvas ref={ref} data-export="canvas" style={{ width, height }} aria-label={T.calendar.label} role="img" />
+        {mark && <div className="mapmark" style={mark} title={T.sync.mark} aria-hidden="true" />}
         {tip && <div className="hover" style={{ left: Math.min(tip.x + 12, width - 230), top: tip.y + 12 }}>{tipText}</div>}
       </div>
       <figcaption className="legend">
@@ -118,6 +136,7 @@ export default function Calendar({ meta, series, variable, theme }) {
         <span><span className="legend-line" /> {T.calendar.viirs}</span>
         <span><span className="legend-bracket" /> {T.calendar.indicative}</span>
       </figcaption>
+      {syncNote}
     </figure>
   );
 }

@@ -202,6 +202,12 @@ export default function Explore({ meta, theme, params }) {
   const onBox = (b) => { setError(null); setPlaying(false); setArea(boxArea(b)); };
   const pickArea = (a) => { setError(null); setPlaying(false); setArea(a); };
   const pickMonth = (m) => { setPlaying(false); setMonth(m); };
+  // UI lab shell (TIME-02): a click in the calendar, month grid or trend moves the map to that month
+  const pickFromChart = (m, day) => { if (!months.includes(m)) return; pickMonth(m); if (day) setDayOfMonth(day); };
+  const syncNote = (what) => (
+    <p className="small mapsync" aria-live="polite">{layerMode === 'recent' ? T.sync.recent(what)
+      : T.sync.hint(what, `${MONTHS_LONG[+month.slice(5, 7) - 1]} ${month.slice(0, 4)}`)}</p>
+  );
 
   // the picture date follows the map month (clamped to the month and to the last data day)
   const imageryDay = useMemo(() => {
@@ -393,17 +399,20 @@ export default function Explore({ meta, theme, params }) {
 
             <ChartCard title={T.headings.calendar} file={file('calendar')} theme={theme} legend={calendarLegend(theme)}
               imageTitle={`${area.name}: daily ${mLabel.toLowerCase()}, ${meta.start.slice(0, 4)} to ${lastIso.slice(0, 4)}`}>
-              <Calendar meta={meta} series={series} variable={variable} theme={theme} />
+              <Calendar meta={meta} series={series} variable={variable} theme={theme}
+                mapMonth={layerMode === 'record' ? month : null} onPickMonth={pickFromChart} syncNote={syncNote(T.sync.day)} />
             </ChartCard>
 
             <ChartCard title={T.headings.months} file={file('months')} theme={theme} imageTitle={`${area.name}: each month against its normal (${mLabel.toLowerCase()})`}
               note={T.monthGrid.classMeaning}>
-              <MonthGrid monthly={mon} variable={variable} theme={theme} falseAlarm={falseAlarm} recordEnd={fmtDay(dateOf(meta, lastK))} />
+              <MonthGrid monthly={mon} variable={variable} theme={theme} falseAlarm={falseAlarm} recordEnd={fmtDay(dateOf(meta, lastK))}
+                mapMonth={layerMode === 'record' ? month : null} onPickMonth={pickFromChart} syncNote={syncNote(T.sync.month)} />
             </ChartCard>
 
             <ChartCard title={T.headings.trend} file={file('trend')} theme={theme} imageTitle={`${area.name}: monthly ${mLabel.toLowerCase()}`}
               note={T.explainShort} about={T.explainScale}>
-              <Trend monthly={mon} range={range} variable={variable} theme={theme} />
+              <Trend monthly={mon} range={range} variable={variable} theme={theme}
+                mapMonth={layerMode === 'record' ? month : null} onPickMonth={pickFromChart} syncNote={syncNote(T.sync.month)} />
             </ChartCard>
 
             <section className="card no-print">

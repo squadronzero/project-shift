@@ -32,6 +32,13 @@ const T = {
   aboutData: 'About this data',
 
   views: { explore: 'Explore', switch: 'The 2012 switch', validation: 'Validation', method: 'Method and data' },
+  // UI lab shell (13 Nov): clicking a day or month in the charts moves the map to that month (TIME-02)
+  sync: {
+    hint: (what, m) => `${what} The map shows ${m}.`,
+    recent: (what) => `${what} The map is showing recent detections, so switch the layer to the record to see it.`,
+    day: 'Click or tap a day to show its month on the map.', month: 'Click or tap a month to show it on the map.',
+    mark: 'map month',
+  },
   theme: { system: 'Auto', light: 'Light', dark: 'Dark', label: 'Colour theme' },
 
   // ---------------------------------------------------------------- the two measures (D31)

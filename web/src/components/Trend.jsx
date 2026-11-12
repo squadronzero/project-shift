@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import T, { MONTHS } from '../content/text.js';
 import { compact, fmt } from '../lib/format.js';
 
-export default function Trend({ monthly, range, variable, theme }) {
+export default function Trend({ monthly, range, variable, theme, mapMonth, onPickMonth, syncNote }) {
   const wrap = useRef(null);
   const [width, setWidth] = useState(300);
   const [hover, setHover] = useState(null);
@@ -29,15 +29,23 @@ export default function Trend({ monthly, range, variable, theme }) {
   const si = rows.findIndex((row) => !row.modisEra);
   const ticks = [0, 0.5, 1].map((f) => f * max);
   const yearsShown = rows.map((row, i) => [row, i]).filter(([row]) => row.month === 0 && row.year % 4 === 0);
-  const onMove = (e) => {
+  const at = (e) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const i = Math.round(((e.clientX - rect.left - l) / (width - l - r)) * (rows.length - 1));
-    setHover(i >= 0 && i < rows.length ? i : null);
+    return i >= 0 && i < rows.length ? i : null;
   };
+  const onMove = (e) => setHover(at(e));
+  // UI lab shell: a click also moves the map to that month
+  const onClick = (e) => {
+    const i = at(e);
+    setHover(i);
+    if (i != null && onPickMonth) onPickMonth(`${rows[i].year}-${String(rows[i].month + 1).padStart(2, '0')}`);
+  };
+  const mi = mapMonth ? rows.findIndex((row) => row.year === +mapMonth.slice(0, 4) && row.month === +mapMonth.slice(5, 7) - 1) : -1;
   const hv = hover != null ? rows[hover] : null;
   return (
     <figure className="chart" ref={wrap}>
-      <svg data-export="svg" width={width} height={h} viewBox={`0 0 ${width} ${h}`} onMouseMove={onMove} onClick={onMove} onMouseLeave={() => setHover(null)} role="img"
+      <svg data-export="svg" width={width} height={h} viewBox={`0 0 ${width} ${h}`} onMouseMove={onMove} onClick={onClick} onMouseLeave={() => setHover(null)} role="img"
         aria-label={T.trend.label(T.measures[variable].toLowerCase())}>
         {ticks.map((v) => <g key={v}><line x1={l} x2={width - r} y1={y(v)} y2={y(v)} className="grid" />
           <text x={l - 6} y={y(v) + 4} className="axis" textAnchor="end">{compact(v)}</text></g>)}
@@ -50,6 +58,7 @@ export default function Trend({ monthly, range, variable, theme }) {
         {hv && <g><line x1={x(hover)} x2={x(hover)} y1={t} y2={h - b} className="cross" />
           <circle cx={x(hover)} cy={y(hv.value)} r={4} fill={theme.line} stroke={theme.surface} strokeWidth="2" /></g>}
       </svg>
+      {mi >= 0 && <div className="mapmark line" aria-hidden="true" title={T.sync.mark} style={{ left: x(mi) - 1, top: t, height: h - t - b }} />}
       {hv && (
         <div className="hover" style={{ left: Math.min(x(hover) + 12, width - 210), top: 8 }}>
           <b>{MONTHS[hv.month]} {hv.year}</b><br />{fmt(hv.value, variable)}
@@ -61,6 +70,7 @@ export default function Trend({ monthly, range, variable, theme }) {
         <span><span className="legend-line solid" /> {T.trend.total}</span>
         <span><span className="swatch" style={{ background: theme.band }} /> {T.trend.range}</span>
       </figcaption>
+      {syncNote}
     </figure>
   );
 }

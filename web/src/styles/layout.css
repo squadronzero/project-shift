@@ -331,3 +331,11 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
   .card { break-inside: avoid; }
   body { background: #fff; }
 }
+
+/* UI lab shell (13 Nov): the map month marked on the calendar, month grid and trend (TIME-02).
+   Overlays, not chart marks, so the PNG and SVG downloads stay as they were. */
+.pickable { cursor: pointer; }
+.mapmark { position: absolute; pointer-events: none; border: 2px solid var(--ink); border-radius: 3px;
+  box-shadow: 0 0 0 1px var(--surface); }
+.mapmark.line { width: 0; border: 0; border-left: 2px solid var(--accent); border-radius: 0; box-shadow: none; }
+.mapsync { margin: 6px 0 0; color: var(--muted); }
