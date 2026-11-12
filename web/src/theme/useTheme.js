@@ -9,6 +9,7 @@ function read() {
   const v = (name) => cs.getPropertyValue(name).trim();
   return {
     name: document.documentElement.dataset.theme || 'light',
+    tpl: document.documentElement.dataset.tpl || '',   // UI lab template (14 Nov): its page colours are read here too
     // Browsers report the font list with double quotes ("Archivo Variable", ...). The chart image
     // export writes it into an SVG attribute that is itself in double quotes, so double quotes there
     // break the file (the SVG will not open and the PNG is never made). Single quotes mean the same font.
@@ -33,7 +34,7 @@ function stored() {
 }
 
 // mode: 'system' | 'light' | 'dark'. Returns [theme, mode, setMode].
-export default function useTheme() {
+export default function useTheme(tpl = '') {
   const q = window.matchMedia('(prefers-color-scheme: dark)');
   const [mode, setMode] = useState(stored);
   const [sys, setSys] = useState(q.matches ? 'dark' : 'light');
@@ -45,10 +46,11 @@ export default function useTheme() {
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
   // set the attribute before reading the colours, so the read sees the right theme
   document.documentElement.dataset.theme = resolved;
+  if (tpl) document.documentElement.dataset.tpl = tpl; else delete document.documentElement.dataset.tpl;
   const [theme, setTheme] = useState(read);
   useEffect(() => {
     setTheme(read());
     try { localStorage.setItem(KEY, mode); } catch { /* private mode: not remembered */ }
-  }, [resolved, mode]);
-  return [theme.name === resolved ? theme : read(), mode, setMode];
+  }, [resolved, mode, tpl]);
+  return [theme.name === resolved && theme.tpl === tpl ? theme : read(), mode, setMode];
 }

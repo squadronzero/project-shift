@@ -5,7 +5,7 @@ import T from '../content/text.js';
 import { saveCanvasPNG, saveSVG, saveSVGasPNG } from '../lib/downloads.js';
 
 // `note` stays visible under the chart; `about` is a longer method note folded behind "About this data" (12 Nov).
-export default function ChartCard({ title, file, imageTitle, theme, legend, children, note, about }) {
+export default function ChartCard({ id, title, file, imageTitle, theme, legend, children, note, about }) {
   const ref = useRef(null);
   const target = () => ref.current?.querySelector('[data-export]');
   const png = () => {
@@ -20,7 +20,7 @@ export default function ChartCard({ title, file, imageTitle, theme, legend, chil
   const [hasSVG, setHasSVG] = useState(true);
   useEffect(() => { const el = target(); if (el) setHasSVG(el.tagName.toLowerCase() === 'svg'); });
   return (
-    <section className="card" ref={ref}>
+    <section className="card" ref={ref} id={id}>
       <div className="card-head">
         <h3>{title}</h3>
         {file && (

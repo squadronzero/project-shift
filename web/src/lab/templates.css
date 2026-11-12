@@ -1,0 +1,391 @@
+/* =====================================================================================
+   SHIFT UI LAB (14 Nov 2026): six design templates for comparison. Lab branch only.
+   Rules kept from web/UI_GUIDE.md: only page colours change per design (surface, mist, ink,
+   muted, rule, accent, focus, header, map sea and land, globe space). The fire ramp, the month
+   classes, the no-data hatch, the recent-detection colours and the not-a-fire colours are never
+   overridden here, so every design shows the data with the same scientific palette.
+   ===================================================================================== */
+
+/* ---------------------------------------------------------------- page colours per design */
+:root[data-tpl="atlas"][data-theme="light"] {
+  --surface: #FBFCFA; --mist: #ECF1F0; --ink: #132A35; --muted: #4F6772; --rule: #BCCACB;
+  --accent: #136F92; --on-accent: #FFFFFF; --focus: #0B4F99; --header-bg: #FFFFFF; --header-ink: #132A35;
+  --map-sea: #B5CCD4; --map-land: #E9EEEA; --globe-space: #0B1A24;
+}
+:root[data-tpl="atlas"][data-theme="dark"] {
+  --surface: #13212B; --mist: #0C171F; --ink: #E6F0F3; --muted: #9DB2BB; --rule: #2B4150;
+  --accent: #5CBBD3; --on-accent: #06131B; --focus: #9CCBFF; --header-bg: #13212B; --header-ink: #E6F0F3;
+  --map-sea: #0C1C27; --map-land: #1B2B35;
+}
+:root[data-tpl="redline"][data-theme="dark"] {
+  --surface: #111114; --mist: #08090C; --ink: #FBF8F5; --muted: #B9ADAC; --rule: #463437;
+  --accent: #FF5257; --on-accent: #0A0A0C; --focus: #FFFFFF; --header-bg: #08090C; --header-ink: #FBF8F5;
+  --map-sea: #101117; --map-land: #24242A; --globe-space: #000000; --radius: 1px;
+}
+:root[data-tpl="redline"][data-theme="light"] {
+  --surface: #FFFFFF; --mist: #EFEDEB; --ink: #111114; --muted: #574E50; --rule: #C9C1C1;
+  --accent: #C1121F; --on-accent: #FFFFFF; --focus: #111114; --header-bg: #111114; --header-ink: #FBF8F5;
+  --map-sea: #D2D4D8; --map-land: #F4F3F1; --radius: 1px;
+}
+:root[data-tpl="orbital"][data-theme="dark"] {
+  --surface: #0E1C29; --mist: #07131E; --ink: #E9F7FF; --muted: #9DBACA; --rule: #2B4859;
+  --accent: #65D1DF; --on-accent: #04121A; --focus: #FFD08A; --header-bg: #07131E; --header-ink: #E9F7FF;
+  --map-sea: #0A1B29; --map-land: #1A2F3D; --globe-space: #02070D; --globe-horizon: #3D7FA6; --radius: 9px;
+}
+:root[data-tpl="orbital"][data-theme="light"] {
+  --surface: #F7FAFC; --mist: #E3ECF2; --ink: #0F2433; --muted: #4A6475; --rule: #C1D1DB;
+  --accent: #0E6E7D; --on-accent: #FFFFFF; --focus: #8A4B00; --header-bg: #F7FAFC; --header-ink: #0F2433;
+  --map-sea: #B9D1DD; --map-land: #EEF2F2; --globe-space: #0B1A28; --radius: 9px;
+}
+:root[data-tpl="mission"][data-theme="dark"] {
+  --surface: #101B24; --mist: #080F16; --ink: #E8F6ED; --muted: #9BBCB2; --rule: #2E494F;
+  --accent: #65D3AB; --on-accent: #06140E; --focus: #F3AA62; --header-bg: #0B141C; --header-ink: #E8F6ED;
+  --map-sea: #0B161E; --map-land: #1A2A31; --globe-space: #03080C; --radius: 4px; --font-size-base: 14px;
+}
+:root[data-tpl="mission"][data-theme="light"] {
+  --surface: #FAFCFB; --mist: #E7EFEB; --ink: #12261E; --muted: #4A675D; --rule: #BDD0C7;
+  --accent: #17704F; --on-accent: #FFFFFF; --focus: #9A4A00; --header-bg: #FAFCFB; --header-ink: #12261E;
+  --map-sea: #BDD2CC; --map-land: #EDF2EE; --radius: 4px; --font-size-base: 14px;
+}
+:root[data-tpl="editorial"][data-theme="light"] {
+  --surface: #FEFDF9; --mist: #F4F2EC; --ink: #1F3236; --muted: #55666A; --rule: #C9D0C9;
+  --accent: #B4461F; --on-accent: #FFFFFF; --focus: #2F5DA8; --header-bg: #FEFDF9; --header-ink: #1F3236;
+  --map-sea: #BBD0D5; --map-land: #F1F0EA; --radius: 2px;
+  --font-heading: Georgia, 'Times New Roman', serif; --heading-stretch: 100%; --heading-weight: 700;
+}
+:root[data-tpl="editorial"][data-theme="dark"] {
+  --surface: #1C1B19; --mist: #131311; --ink: #EEEAE2; --muted: #ACA89F; --rule: #3B3934;
+  --accent: #E8A276; --on-accent: #1C1B19; --focus: #9DBDF0; --header-bg: #1C1B19; --header-ink: #EEEAE2;
+  --map-sea: #141A1D; --map-land: #26292A; --radius: 2px;
+  --font-heading: Georgia, 'Times New Roman', serif; --heading-stretch: 100%; --heading-weight: 700;
+}
+:root[data-tpl="glass"][data-theme="dark"] {
+  --surface: #121E3A; --mist: #050B1E; --ink: #F0F6FF; --muted: #AEC0DE; --rule: #34497A;
+  --accent: #96D5FF; --on-accent: #06102A; --focus: #F2A6FF; --header-bg: #050B1E; --header-ink: #F0F6FF;
+  --map-sea: #08112C; --map-land: #1C2848; --globe-space: #020616; --globe-horizon: #6E73D8; --radius: 14px;
+  --glass: rgb(18 30 58 / 0.84);
+}
+:root[data-tpl="glass"][data-theme="light"] {
+  --surface: #F6F8FF; --mist: #DCE3F5; --ink: #13203F; --muted: #48587B; --rule: #B8C3DF;
+  --accent: #3550C8; --on-accent: #FFFFFF; --focus: #8A2BA0; --header-bg: #F6F8FF; --header-ink: #13203F;
+  --map-sea: #B9C6E6; --map-land: #EEF1FA; --globe-space: #0E1638; --radius: 14px;
+  --glass: rgb(246 248 255 / 0.88);
+}
+
+/* ---------------------------------------------------------------- classic site: the way into the lab */
+.lab-link { font-size: 13px; color: var(--muted); }
+
+/* ---------------------------------------------------------------- shared lab frame */
+.app.lab { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.labbar { display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; padding: 8px 16px; min-height: 52px;
+  background: var(--header-bg); color: var(--header-ink); border-bottom: 1px solid var(--rule); z-index: 8; }
+.labbrand { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
+.labbrand h1 { margin: 0; font-size: 24px; line-height: 1; font-weight: 820; font-stretch: 125%; letter-spacing: 0.02em; }
+.labbrand p { margin: 0; font-size: 12px; color: var(--muted); max-width: 44ch; }
+.labtag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); border: 1px solid currentColor;
+  border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.labbar-right { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.labbar .badge { font-size: 12px; }
+.labbody { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); }
+.labmain { grid-column: 2; grid-row: 1; min-width: 0; min-height: 0; overflow: auto; display: flex; flex-direction: column; background: var(--mist); }
+.labmain > .page { flex: none; }
+
+/* the HUD */
+.hud { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; gap: 4px; padding: 10px 6px; z-index: 9;
+  background: var(--surface); border-right: 1px solid var(--rule); --hud-w: 58px; }
+.hud-group { display: flex; flex-direction: column; gap: 4px; }
+.hud-spacer { flex: 1; min-height: 8px; }
+.hud-btn { position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; width: 44px; height: 44px;
+  padding: 0; font: inherit; font-size: 13px; color: var(--muted); background: transparent; border: 1px solid transparent;
+  border-radius: var(--radius); cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s; }
+.hud-btn:hover { color: var(--ink); background: var(--mist); border-color: var(--rule); }
+.hud-btn.on { color: var(--ink); background: var(--mist); border-color: var(--accent); box-shadow: inset 3px 0 0 var(--accent); }
+.hud-label { position: absolute; left: calc(100% + 10px); top: 50%; transform: translateY(-50%); white-space: nowrap; z-index: 40;
+  background: var(--ink); color: var(--surface); padding: 4px 8px; border-radius: 4px; font-size: 12px; line-height: 1.3;
+  opacity: 0; pointer-events: none; transition: opacity 0.12s; }
+.hud-btn:hover .hud-label, .hud-btn:focus-visible .hud-label { opacity: 1; }
+
+/* drawers */
+.hud-drawer-slot { position: absolute; z-index: 20; top: 10px; left: 68px; width: min(360px, calc(100% - 84px));
+  max-height: calc(100% - 20px); display: flex; flex-direction: column; pointer-events: none; }
+.hud-drawer { pointer-events: auto; display: flex; flex-direction: column; min-height: 0; max-height: 100%; overflow: hidden;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: calc(var(--radius) + 4px);
+  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.28); }
+.hud-drawer:not(.pinned) { opacity: 0.97; }
+.hud-drawer-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 10px 8px 14px;
+  border-bottom: 1px solid var(--rule); }
+.hud-drawer-head h2 { margin: 0; font-size: 15px; font-weight: 700; font-stretch: 100%; }
+.hud-close { flex: none; display: grid; place-items: center; width: 40px; height: 40px; padding: 0; color: var(--ink);
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); cursor: pointer; }
+.hud-close:hover { background: var(--mist); }
+.hud-drawer-body { padding: 12px 14px 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.drawer-stack { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.drawer-stack .action { width: 100%; text-align: left; }
+.hud-drawer .controls { display: flex; flex-direction: column; gap: 10px; }
+.hud-drawer .seg.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+.hud-drawer .seg.grid3 button { padding: 8px 6px; min-height: 40px; }
+.lab-notyet { border: 1px dashed var(--rule); border-radius: var(--radius); padding: 10px 12px; font-size: 13px; background: var(--mist); }
+.lab-notyet ul { margin: 6px 0; padding-left: 18px; }
+.lab-notyet-inline { border-left: 3px dashed var(--rule); padding-left: 8px; }
+.lab-limits { margin: 0; padding-left: 18px; }
+.lab-limits li { margin: 4px 0; }
+
+/* Explore inside a lab design */
+.lab-explore { position: relative; flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--inspector-w, 400px); }
+.lab-explore[data-inspector="closed"] { grid-template-columns: minmax(0, 1fr); }
+.lab-explore .mapside { border-right: 0; min-height: 0; display: flex; flex-direction: column; }
+.lab-explore .mapstage { flex: 1; min-height: 0; }
+.lab-explore .map { flex: 1 1 auto; min-height: 0; }
+.lab-explore .mapnotes { padding: 4px 14px 6px; margin: 0; font-size: 12px; border-top: 1px solid var(--rule); }
+.lab-dock .mapbar { border-top: 1px solid var(--rule); }
+.lab-explore .legendbox { bottom: 40px; }
+.lab-displaynote { margin: 6px 0 0; max-width: 32ch; }
+.lab-inspector { min-height: 0; overflow-y: auto; border-left: 1px solid var(--rule); background: var(--surface); padding: 6px 20px 40px; }
+.lab-inspector-head { position: sticky; top: -6px; z-index: 4; display: flex; justify-content: flex-end; align-items: center; gap: 8px;
+  margin: 0 -20px; padding: 6px 12px; background: var(--surface); border-bottom: 1px solid var(--rule); }
+.lab-inspector h2 { margin-top: 12px; }
+.lab-sheet-ctl { display: none; margin-right: auto; }
+.lab-sheet-ctl button { font: inherit; font-size: 12px; min-height: 40px; padding: 4px 10px; color: var(--muted); background: var(--surface);
+  border: 1px solid var(--rule); cursor: pointer; }
+.lab-sheet-ctl button + button { border-left: 0; }
+.lab-sheet-ctl button.on { color: var(--ink); background: var(--mist); font-weight: 650; }
+.lab-peek { margin: 8px 0 4px; }
+.lab-peek .facts.compact { grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 6px 0 4px; }
+.lab-peek .facts.compact b { font-size: 20px; }
+.lab-start { position: absolute; z-index: 4; left: 50%; bottom: 64px; transform: translateX(-50%); width: min(460px, calc(100% - 32px));
+  background: var(--surface); color: var(--ink); border: 1px solid var(--rule); border-radius: calc(var(--radius) + 4px);
+  padding: 14px 18px; box-shadow: 0 10px 34px rgba(0, 0, 0, 0.26); }
+.lab-start h2 { margin: 0 0 4px; font-size: 20px; }
+.lab-start-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 0; }
+
+/* pages inside a lab design */
+.app.lab .page { background: var(--surface); margin: 18px auto 40px; border: 1px solid var(--rule); border-radius: var(--radius); }
+
+/* gallery */
+.lab-gallery-app { min-height: 100vh; background: var(--mist); }
+.lab-gallery { max-width: 1180px; background: transparent; }
+.lab-gallery h2 { max-width: 30ch; }
+.lab-eyebrow { margin: 0 0 6px; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); font-weight: 700; }
+.lab-cards { list-style: none; margin: 22px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.lab-card { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 16px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
+.lab-card h3 { margin: 0; font-size: 19px; }
+.lab-card .small { margin: 0 0 6px; flex: 1; }
+.lab-card .action { align-self: flex-start; }
+.lab-card.control { border-style: dashed; }
+.lab-code { margin: 6px 0 0; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+.mini-layout { position: relative; height: 120px; border-radius: 8px; overflow: hidden; border: 1px solid var(--rule); background: #0D1A27; }
+.mini-layout span { position: absolute; display: block; border-radius: 4px; }
+.mini-layout .m-map { background: radial-gradient(circle at 45% 50%, #4E8A9B 0 22%, #1E4256 23% 46%, transparent 47%), #0C2030; }
+.mini-layout .m-nav { background: #2C4A5C; }
+.mini-layout .m-panel { background: #20384A; }
+.mini-atlas { background: #E9EFEE; } .mini-atlas .m-nav { left: 6px; top: 6px; bottom: 6px; width: 12px; background: #FFFFFF; }
+.mini-atlas .m-map { left: 24px; top: 6px; bottom: 6px; right: 34%; } .mini-atlas .m-panel { right: 6px; top: 6px; bottom: 6px; width: 30%; background: #FFFFFF; }
+.mini-redline { background: #0B0B0E; } .mini-redline .m-nav { left: 30%; right: 30%; top: 6px; height: 10px; background: #3A1416; box-shadow: inset 0 -2px #FF5257; }
+.mini-redline .m-map { left: 6px; top: 22px; bottom: 6px; right: 34%; } .mini-redline .m-panel { right: 6px; top: 22px; bottom: 6px; width: 30%; background: #1E1A1C; border: 1px solid #FF5257; }
+.mini-orbital { background: #07131E; } .mini-orbital .m-nav { left: 6px; top: 6px; bottom: 6px; width: 12px; }
+.mini-orbital .m-map { left: 24px; top: 6px; bottom: 6px; right: 6px; } .mini-orbital .m-panel { right: 12px; top: 14px; bottom: 14px; width: 28%; opacity: 0.92; }
+.mini-mission { background: #080F16; } .mini-mission .m-nav { left: 6px; top: 6px; bottom: 6px; width: 22%; background: #17302F; }
+.mini-mission .m-map { left: 26%; top: 6px; bottom: 6px; right: 30%; } .mini-mission .m-panel { right: 6px; top: 6px; bottom: 6px; width: 26%; background: #17302F; }
+.mini-editorial { background: #F4F2EC; } .mini-editorial .m-nav { left: 6px; top: 6px; bottom: 6px; width: 9px; background: #FEFDF9; border: 1px solid #C9D0C9; }
+.mini-editorial .m-map { left: 20px; top: 6px; bottom: 6px; right: 50%; } .mini-editorial .m-panel { right: 6px; top: 6px; bottom: 6px; width: 46%; background: #FEFDF9; border: 1px solid #C9D0C9; }
+.mini-glass { background: #050B1E; } .mini-glass .m-map { left: 6px; top: 6px; bottom: 6px; right: 6px; }
+.mini-glass .m-nav { left: 34%; right: 34%; bottom: 10px; height: 10px; background: rgb(150 213 255 / 0.4); }
+.mini-glass .m-panel { right: 12px; top: 12px; height: 60%; width: 26%; background: rgb(60 80 140 / 0.7); }
+.mini-site { background: #E9EEEC; } .mini-site .m-nav { left: 6px; right: 6px; top: 6px; height: 10px; background: #FCFCFB; }
+.mini-site .m-map { left: 6px; top: 22px; bottom: 6px; right: 49%; } .mini-site .m-panel { right: 6px; top: 22px; bottom: 6px; width: 46%; background: #FCFCFB; }
+
+/* ---------------------------------------------------------------- T01 Earth Data Atlas */
+.app.lab[data-tpl="atlas"] .labbar { box-shadow: 0 1px 0 var(--rule); }
+.app.lab[data-tpl="atlas"] .hud-btn.on { box-shadow: inset 3px 0 0 var(--accent); }
+.app.lab[data-tpl="atlas"] .lab-explore { --inspector-w: 400px; }
+
+/* ---------------------------------------------------------------- T02 Redline / Industrial */
+.app.lab[data-tpl="redline"] .labbar { border-bottom: 2px solid var(--accent); }
+.app.lab[data-tpl="redline"] .labbrand h1 { letter-spacing: 0.16em; font-stretch: 125%; }
+.app.lab[data-tpl="redline"] h2, .app.lab[data-tpl="redline"] h3 { text-transform: uppercase; letter-spacing: 0.06em; font-stretch: 112%; }
+.app.lab[data-tpl="redline"] .story h2 { font-size: 22px; }
+.app.lab[data-tpl="redline"] .labbody { grid-template-columns: minmax(0, 1fr); }
+.app.lab[data-tpl="redline"] .labmain { grid-column: 1; }
+.app.lab[data-tpl="redline"] .hud { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); flex-direction: row; padding: 5px;
+  border: 1px solid var(--rule); border-top: 2px solid var(--accent); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35); }
+.app.lab[data-tpl="redline"][data-view="explore"] .hud { left: calc((100% - 380px) / 2); }
+.app.lab[data-tpl="redline"] .hud-group { flex-direction: row; }
+.app.lab[data-tpl="redline"] .hud-spacer { flex: none; width: 1px; min-height: 0; margin: 4px 6px; background: var(--rule); }
+.app.lab[data-tpl="redline"] .hud-btn.on { box-shadow: inset 0 -3px 0 var(--accent); }
+.app.lab[data-tpl="redline"] .hud-label { left: 50%; top: calc(100% + 8px); transform: translateX(-50%); }
+.app.lab[data-tpl="redline"] .hud-drawer-slot { top: 72px; left: 50%; transform: translateX(-50%); }
+.app.lab[data-tpl="redline"][data-view="explore"] .hud-drawer-slot { left: calc((100% - 380px) / 2); }
+.app.lab[data-tpl="redline"] .lab-explore { --inspector-w: 380px; }
+.app.lab[data-tpl="redline"] .lab-inspector { margin: 10px 10px 10px 0; border: 1px solid var(--rule); border-top: 2px solid var(--accent); }
+.app.lab[data-tpl="redline"] .mapnote { top: 74px; }
+.app.lab[data-tpl="redline"] .facts b { color: var(--ink); }
+/* light theme: the header bar stays dark, so its text uses the header colours, not the page ones */
+:root[data-theme="light"] .app.lab[data-tpl="redline"] .labbar :is(.labbrand p, .badge, .lab-link) { color: var(--header-ink); border-color: #5A5052; }
+:root[data-theme="light"] .app.lab[data-tpl="redline"] .labtag, :root[data-theme="light"] .app.lab[data-tpl="redline"] .labbar .badge.warn { color: #FF6B70; border-color: #FF6B70; }
+
+/* ---------------------------------------------------------------- T03 Orbital Observatory */
+.app.lab[data-tpl="orbital"] .labbar { background: linear-gradient(90deg, var(--header-bg), var(--surface)); }
+.app.lab[data-tpl="orbital"] .lab-explore { grid-template-columns: minmax(0, 1fr); }
+.app.lab[data-tpl="orbital"] .lab-inspector { position: absolute; z-index: 6; top: 14px; right: 14px; bottom: 96px; width: min(420px, calc(100% - 28px));
+  border: 1px solid var(--rule); border-radius: 14px; box-shadow: 0 18px 54px rgba(0, 0, 0, 0.45);
+  background: var(--surface); }
+.app.lab[data-tpl="orbital"] .lab-inspector-head { border-radius: 14px 14px 0 0; }
+.app.lab[data-tpl="orbital"] .hud-btn.on { box-shadow: 0 0 0 1px var(--accent), 0 0 14px rgb(101 209 223 / 0.25); }
+.app.lab[data-tpl="orbital"] .lab-dock .mapbar { background: var(--surface); }
+
+/* ---------------------------------------------------------------- T04 Mission Control */
+.app.lab[data-tpl="mission"] .labbody { grid-template-columns: 214px auto minmax(0, 1fr); }
+.app.lab[data-tpl="mission"] .labmain { grid-column: 3; }
+.app.lab[data-tpl="mission"] .hud { width: 214px; padding: 10px 8px; }
+.app.lab[data-tpl="mission"] .hud-btn { width: 100%; justify-content: flex-start; padding: 0 12px; }
+.app.lab[data-tpl="mission"] .hud-btn.on { box-shadow: inset 3px 0 0 var(--accent); }
+.app.lab[data-tpl="mission"] .hud-label { position: static; transform: none; opacity: 1; background: none; color: inherit; padding: 0;
+  font-size: 13px; letter-spacing: 0.02em; }
+.app.lab[data-tpl="mission"] .hud-drawer-slot { position: relative; grid-column: 2; grid-row: 1; top: 0; left: 0; width: 330px; max-height: none;
+  height: 100%; border-right: 1px solid var(--rule); background: var(--surface); }
+.app.lab[data-tpl="mission"] .hud-drawer-slot:empty { display: none; }
+.app.lab[data-tpl="mission"] .hud-drawer { height: 100%; border: 0; border-radius: 0; box-shadow: none; }
+.app.lab[data-tpl="mission"] .lab-explore { --inspector-w: 380px; }
+.app.lab[data-tpl="mission"] .lab-inspector { padding: 4px 16px 30px; font-size: 14px; }
+.app.lab[data-tpl="mission"] .lab-inspector-head { margin: 0 -16px; }
+.app.lab[data-tpl="mission"] .story h2 { font-size: 21px; }
+.app.lab[data-tpl="mission"] .card h3 { text-transform: uppercase; letter-spacing: 0.08em; font-size: 12.5px; }
+.app.lab[data-tpl="mission"] .card { padding-top: 12px; margin-top: 12px; }
+
+/* ---------------------------------------------------------------- T05 Scientific Editorial */
+.app.lab[data-tpl="editorial"] .labbar { border-bottom: 2px solid var(--ink); }
+.app.lab[data-tpl="editorial"] .labbrand h1 { font-family: var(--font-heading); font-stretch: 100%; letter-spacing: 0.04em; font-weight: 700; }
+.app.lab[data-tpl="editorial"] .hud { padding: 10px 4px; }
+.app.lab[data-tpl="editorial"] .hud-btn { width: 40px; }
+.app.lab[data-tpl="editorial"] .hud-btn.on { box-shadow: inset 0 -2px 0 var(--accent); }
+.app.lab[data-tpl="editorial"] .hud-drawer-slot { left: 56px; }
+.app.lab[data-tpl="editorial"] .lab-explore { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.app.lab[data-tpl="editorial"] .lab-explore[data-inspector="closed"] { grid-template-columns: minmax(0, 1fr); }
+.app.lab[data-tpl="editorial"] .lab-inspector { padding: 6px 34px 50px; }
+.app.lab[data-tpl="editorial"] .lab-inspector-head { margin: 0 -34px; }
+.app.lab[data-tpl="editorial"] .story h2 { font-size: 30px; }
+.app.lab[data-tpl="editorial"] .card h3 { font-family: var(--font-heading); font-size: 18px; font-weight: 700; }
+.app.lab[data-tpl="editorial"] .lede { font-family: var(--font-heading); font-size: 17px; }
+.app.lab[data-tpl="editorial"] .card { border-top: 1px solid var(--ink); }
+
+/* ---------------------------------------------------------------- T06 Glass Horizon */
+.app.lab[data-tpl="glass"] .labbar { background: var(--header-bg); border-bottom-color: transparent; }
+.app.lab[data-tpl="glass"] .labbody { grid-template-columns: minmax(0, 1fr); }
+.app.lab[data-tpl="glass"] .labmain { grid-column: 1; }
+.app.lab[data-tpl="glass"] .hud { position: absolute; left: 50%; bottom: 74px; transform: translateX(-50%); flex-direction: row; padding: 6px;
+  border: 1px solid var(--rule); border-radius: 18px; background: var(--glass); backdrop-filter: blur(16px);
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.4); }
+.app.lab[data-tpl="glass"][data-view="explore"] .hud { left: calc((100% - 420px) / 2); }
+.app.lab[data-tpl="glass"]:not([data-view="explore"]) .hud { bottom: 16px; }
+.app.lab[data-tpl="glass"] .hud-group { flex-direction: row; }
+.app.lab[data-tpl="glass"] .hud-spacer { flex: none; width: 1px; min-height: 0; margin: 6px; background: var(--rule); }
+.app.lab[data-tpl="glass"] .hud-btn { border-radius: 12px; }
+.app.lab[data-tpl="glass"] .hud-btn.on { box-shadow: 0 0 0 1px var(--accent); }
+.app.lab[data-tpl="glass"] .hud-label { left: 50%; top: auto; bottom: calc(100% + 10px); transform: translateX(-50%); }
+.app.lab[data-tpl="glass"] .hud-drawer-slot { top: auto; bottom: 138px; left: 18px; max-height: calc(100% - 160px); }
+.app.lab[data-tpl="glass"] .hud-drawer { background: var(--glass); backdrop-filter: blur(18px); border-radius: 18px; }
+.app.lab[data-tpl="glass"] .hud-drawer-head { background: transparent; }
+.app.lab[data-tpl="glass"] .lab-explore { grid-template-columns: minmax(0, 1fr); }
+.app.lab[data-tpl="glass"] .lab-inspector { position: absolute; z-index: 6; top: 14px; right: 14px; bottom: 74px; width: min(420px, calc(100% - 28px));
+  border: 1px solid var(--rule); border-radius: 18px; background: var(--glass); backdrop-filter: blur(18px);
+  box-shadow: 0 18px 54px rgba(0, 0, 0, 0.45); }
+.app.lab[data-tpl="glass"] .lab-inspector-head { background: transparent; backdrop-filter: none; border-radius: 18px 18px 0 0; }
+.app.lab[data-tpl="glass"] .lab-dock { padding: 8px 14px 12px; background: transparent; }
+.app.lab[data-tpl="glass"] .lab-dock .mapbar { border: 1px solid var(--rule); border-radius: 16px; background: var(--glass); backdrop-filter: blur(14px); }
+.app.lab[data-tpl="glass"] .lab-start { bottom: 150px; background: var(--glass); backdrop-filter: blur(16px); border-radius: 18px; }
+
+/* floating toolbars size to their icons (an absolutely placed grid item would otherwise stretch to the full width) */
+.app.lab[data-tpl="redline"] .hud, .app.lab[data-tpl="glass"] .hud { width: max-content; justify-self: start; }
+.app.lab[data-tpl="glass"] .hud { bottom: 212px; }
+.app.lab[data-tpl="glass"] .hud-drawer-slot { bottom: 276px; max-height: calc(100% - 290px); }
+/* a floating research panel never covers the map credits, the scale or the zoom buttons: they move left of it */
+@media (min-width: 901px) {
+  .app.lab[data-tpl="orbital"] .lab-explore[data-inspector="open"] .maplibregl-ctrl-bottom-right,
+  .app.lab[data-tpl="orbital"] .lab-explore[data-inspector="open"] .maplibregl-ctrl-top-right,
+  .app.lab[data-tpl="glass"] .lab-explore[data-inspector="open"] .maplibregl-ctrl-bottom-right,
+  .app.lab[data-tpl="glass"] .lab-explore[data-inspector="open"] .maplibregl-ctrl-top-right { right: min(448px, calc(100% - 28px)); }
+}
+.lab-inspector-title { margin-right: auto; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+
+/* performance mode: no see-through panels, no shadows, no transitions (values are not touched) */
+.app.lab:has([data-quality="performance"]) * { backdrop-filter: none !important; transition: none !important; }
+.app.lab:has([data-quality="performance"]) .hud, .app.lab:has([data-quality="performance"]) .hud-drawer,
+.app.lab:has([data-quality="performance"]) .lab-inspector, .app.lab:has([data-quality="performance"]) .lab-dock .mapbar { box-shadow: none !important; }
+.app.lab[data-tpl="glass"]:has([data-quality="performance"]) .hud, .app.lab[data-tpl="glass"]:has([data-quality="performance"]) .hud-drawer,
+.app.lab[data-tpl="glass"]:has([data-quality="performance"]) .lab-inspector, .app.lab[data-tpl="glass"]:has([data-quality="performance"]) .lab-dock .mapbar { background: var(--surface); }
+/* browsers without backdrop blur get solid panels, so text keeps its contrast */
+@supports not (backdrop-filter: blur(4px)) {
+  .app.lab[data-tpl="glass"] .hud, .app.lab[data-tpl="glass"] .hud-drawer, .app.lab[data-tpl="glass"] .lab-inspector,
+  .app.lab[data-tpl="glass"] .lab-dock .mapbar { background: var(--surface); }
+}
+
+/* ---------------------------------------------------------------- phones and small tablets */
+@media (max-width: 900px) {
+  .labbar { padding: 6px 12px; min-height: 0; gap: 4px 10px; }
+  .labbrand h1 { font-size: 20px; }
+  .labbrand p { display: none; }
+  .labtag { font-size: 10px; }
+  .labbar-right { width: 100%; margin-left: 0; gap: 4px 8px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .labbar-right::-webkit-scrollbar { display: none; }
+  .labbar .badge { font-size: 11px; padding: 1px 7px; white-space: nowrap; flex: none; }
+  .labbar .lab-link { flex: none; min-height: 32px; font-size: 12px; }
+  .labbody, .app.lab[data-tpl] .labbody { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+  .labmain, .app.lab[data-tpl] .labmain { grid-column: 1; grid-row: 2; }
+  /* the HUD becomes one row of icons above the map, the same place in every design */
+  .hud, .app.lab[data-tpl] .hud { position: relative; grid-column: 1; grid-row: 1; left: auto; right: auto; top: auto; bottom: auto;
+    transform: none; width: auto; flex-direction: row; gap: 2px; padding: 4px 8px; overflow-x: auto; overscroll-behavior-x: contain;
+    scrollbar-width: none; border: 0; border-bottom: 1px solid var(--rule); border-radius: 0; box-shadow: none; backdrop-filter: none;
+    background: var(--surface); }
+  .hud::-webkit-scrollbar { display: none; }
+  .hud-group, .app.lab[data-tpl] .hud-group { flex-direction: row; gap: 2px; }
+  .hud-spacer, .app.lab[data-tpl] .hud-spacer { flex: none; width: 1px; min-height: 0; margin: 6px 4px; background: var(--rule); }
+  .hud-btn, .app.lab[data-tpl] .hud-btn { flex: none; width: 44px; height: 44px; justify-content: center; padding: 0; }
+  .hud-label, .app.lab[data-tpl] .hud-label { display: none; }
+  .hud-drawer-slot, .app.lab[data-tpl] .hud-drawer-slot { position: absolute; grid-column: auto; top: 58px; bottom: auto; left: 8px; right: 8px;
+    width: auto; height: auto; max-height: calc(100% - 70px); transform: none; border: 0; background: transparent; }
+  .app.lab[data-tpl="mission"] .hud-drawer-slot:empty { display: flex; }
+  .app.lab[data-tpl] .hud-drawer { height: auto; border: 1px solid var(--rule); border-radius: 12px; box-shadow: 0 14px 42px rgba(0, 0, 0, 0.35); }
+  /* the research panel becomes a bottom sheet below the map: the map is never covered by it */
+  .lab-explore, .app.lab[data-tpl] .lab-explore { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) var(--sheet, 40%); }
+  .lab-explore[data-sheet="half"] { --sheet: 60%; }
+  .lab-explore[data-sheet="full"] { --sheet: 90%; }
+  .lab-explore[data-inspector="closed"], .app.lab[data-tpl] .lab-explore[data-inspector="closed"] { grid-template-rows: minmax(0, 1fr); }
+  .lab-inspector, .app.lab[data-tpl] .lab-inspector { position: relative; inset: auto; width: auto; margin: 0; padding: 0 16px 30px;
+    border: 0; border-top: 1px solid var(--rule); border-radius: 16px 16px 0 0; box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.22); }
+  .lab-inspector-head, .app.lab[data-tpl] .lab-inspector-head { top: 0; margin: 0 -16px; padding: 6px 10px; border-radius: 16px 16px 0 0; }
+  .lab-sheet-ctl { display: inline-flex; }
+  .lab-sheet-ctl button, .hud-close, .hud-drawer .seg.grid3 button { min-height: 44px; min-width: 44px; }
+  .lab-inspector-title { display: none; }
+  .lab-explore .story { max-height: none; overflow-y: auto; }
+  .app.lab:has(.explore) { height: 100dvh; }
+  .lab-dock .mapbar { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: thin; padding: 6px 10px; gap: 4px 12px; }
+  .lab-dock .mapbar label { flex-wrap: nowrap; white-space: nowrap; flex: none; max-width: none; }
+  .lab-dock .mapbar .action { flex: none; white-space: nowrap; }
+  .lab-dock .mapbar .recentnotice { flex: none; min-width: 260px; }
+  .lab-explore .mapnotes { display: none; }
+  .lab-explore .legendbox { bottom: 8px; }
+  .lab-explore .cellpanel { max-height: 60%; }
+  .lab-start { bottom: 12px; }
+  .app.lab[data-tpl="glass"] .lab-dock { padding: 4px 8px; }
+  .app.lab[data-tpl="glass"] .lab-start { bottom: 12px; }
+  .app.lab .page { margin: 0; border: 0; border-radius: 0; }
+  /* T05 Scientific Editorial reads top to bottom on phones, like a report: no sheet */
+  .app.lab[data-tpl="editorial"] { height: auto; overflow: visible; }
+  .app.lab[data-tpl="editorial"] .labbody { display: block; }
+  .app.lab[data-tpl="editorial"] .hud { position: sticky; top: 0; }
+  .app.lab[data-tpl="editorial"] .hud-drawer-slot { position: fixed; top: 60px; }
+  .app.lab[data-tpl="editorial"] .labmain { overflow: visible; }
+  .app.lab[data-tpl="editorial"] .lab-explore { display: block; }
+  .app.lab[data-tpl="editorial"] .lab-explore .mapside { height: max(340px, 58vh); }
+  .app.lab[data-tpl="editorial"] .lab-inspector { overflow: visible; border-radius: 0; box-shadow: none; }
+  .app.lab[data-tpl="editorial"] .lab-sheet-ctl { display: none; }
+  .app.lab[data-tpl="editorial"] .lab-inspector-head { position: static; }
+}
+
+/* ---------------------------------------------------------------- print: the research panel only */
+@media print {
+  .app.lab { height: auto; overflow: visible; display: block; }
+  .labbar, .hud, .hud-drawer-slot, .lab-explore .mapside, .lab-inspector-head { display: none !important; }
+  .labbody, .labmain, .lab-explore { display: block; overflow: visible; }
+  .lab-inspector { position: static !important; width: auto !important; border: 0 !important; box-shadow: none !important; background: #fff !important; overflow: visible; }
+}

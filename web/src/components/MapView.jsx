@@ -7,7 +7,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import T from '../content/text.js';
 import { land } from '../lib/area.js';
-import { cellSquare, dragBox, imagery, squaresOf, stepExpression, zoneBox } from '../lib/geo.js';
+import { MAP_STEPS, cellSquare, dragBox, imagery, squaresOf, stepExpression, zoneBox } from '../lib/geo.js';
 import { RECENT_COUNT_STEPS, RECENT_FRP_STEPS, recentStep } from '../lib/recent.js';
 import { GEO_LABEL_IDS, GeoLoader, MAX_ZOOM, geoLabelLayers, geoLineLayers, glyphsUrl, labelsAllowed } from '../geo/layers.js';
 import { coastLines, landForMap } from '../geo/coast.js';
@@ -44,6 +44,14 @@ const HOME = { '2d': { center: [60, 15], zoom: 1.4 }, '3d': { center: [60, 15], 
 const DOTS_UNTIL = 4.5;   // zoomed out: dots; zoomed in: the true 0.25-degree squares
 export const RECENT_POINTS_FROM = 6;   // recent layer: cell overview below this zoom, single detections from it
 const RECORD_LAYERS = ['fires', 'firecells'];
+// UI lab (14 Nov): two extra ways to draw the same monthly cells. Neither changes a value.
+//   smooth: a heatmap of the cell centres for the zoomed-out view, fading out as the true squares appear
+//   blocks: the 0.25-degree squares raised by their colour step (1 to 6), not by a measured height
+const BLOCK_STEP_M = 22000;
+const stepIndex = (variable) => { const st = MAP_STEPS[variable] || MAP_STEPS.frp; const e = ['step', ['get', variable], 1]; st.forEach((v, i) => e.push(v, i + 2)); return e; };
+const heatWeight = (variable) => { const st = MAP_STEPS[variable] || MAP_STEPS.frp; const e = ['step', ['get', variable], 0.12]; st.forEach((v, i) => e.push(v, [0.3, 0.48, 0.66, 0.84, 1][i])); return e; };
+const heatColour = (ramp) => ['interpolate', ['linear'], ['heatmap-density'], 0, 'rgba(0,0,0,0)', 0.12, ramp[0], 0.3, ramp[1], 0.5, ramp[2],
+  0.68, ramp[3], 0.84, ramp[4], 1, ramp[5]];
 const RECENT_LAYERS = ['recent-cells', 'recent-pts'];
 
 // A popup built from text nodes only. FIRMS values never go through HTML (see docs/preflight).
@@ -70,14 +78,15 @@ function hatch(colour) {
 export default function MapView({ theme, fires, notFire, showNotFire, area, drawing, onBox, onDrawEnd, onDateLine,
   variable = 'frp', view = '2d', basemap = 'standard', imageryDay = null, gaps = null, showGaps = false,
   picked = null, onPick, resetKey = 0, focusKey = 0, reducedMotion = false, onImageryError, onStatus,
-  layerMode = 'record', recentCells = null, recentPts = null, recentTip, onRecentPick, onViewChange }) {
+  layerMode = 'record', recentCells = null, recentPts = null, recentTip, onRecentPick, onViewChange,
+  display = 'grid', flight = 600, padding = 40, sky = true }) {
   const el = useRef(null);
   const map = useRef(null);
   const ready = useRef(false);
   const [failed, setFailed] = useState(false);
   const latest = useRef({});
   latest.current = { onBox, onDrawEnd, drawing, onPick, onDateLine, onImageryError, onStatus, view, reducedMotion,
-    recentTip, onRecentPick, onViewChange };
+    recentTip, onRecentPick, onViewChange, display, fires, layerMode };
   const squares = useMemo(() => squaresOf(fires), [fires]);
 
   useEffect(() => {
@@ -122,6 +131,14 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
         'circle-opacity': 0.9, 'circle-stroke-width': 0, 'circle-stroke-color': '#000' } });
       m.addLayer({ id: 'firecells', type: 'fill', source: 'firecells', minzoom: DOTS_UNTIL, paint: {
         'fill-color': stepExpression(variable, theme.ramp), 'fill-opacity': 0.82, 'fill-outline-color': theme.surface } });
+      m.addLayer({ id: 'fires-smooth', type: 'heatmap', source: 'fires', maxzoom: DOTS_UNTIL + 1, layout: { visibility: 'none' }, paint: {
+        'heatmap-weight': heatWeight(variable), 'heatmap-color': heatColour(theme.ramp),
+        'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 1, 5, 3, 10, DOTS_UNTIL, 16],
+        'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 1, 0.7, DOTS_UNTIL, 1.2],
+        'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], DOTS_UNTIL - 1, 0.9, DOTS_UNTIL + 0.6, 0] } });
+      m.addLayer({ id: 'firecells-3d', type: 'fill-extrusion', source: 'firecells', layout: { visibility: 'none' }, paint: {
+        'fill-extrusion-color': stepExpression(variable, theme.ramp), 'fill-extrusion-opacity': 0.92,
+        'fill-extrusion-height': ['*', stepIndex(variable), BLOCK_STEP_M], 'fill-extrusion-base': 0 } });
       m.addSource('notfire', { type: 'geojson', data: EMPTY });
       m.addLayer({ id: 'notfire', type: 'circle', source: 'notfire', layout: { visibility: 'none' }, paint: {
         'circle-radius': ['interpolate', ['linear'], ['zoom'], 1, 1.4, 5, 3, 8, 7],
@@ -178,7 +195,16 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
       m.getCanvas().style.cursor = latest.current.drawing ? 'crosshair' : 'pointer';
     };
     const hideTip = () => { tip.remove(); m.getCanvas().style.cursor = latest.current.drawing ? 'crosshair' : ''; };
-    for (const id of ['fires', 'firecells']) {
+    // smooth overview: a click finds the exact 0.25-degree cell under the pointer (never a colour read from the picture)
+    m.on('click', (e) => {
+      const L = latest.current;
+      if (L.drawing || L.display !== 'smooth' || L.layerMode !== 'record' || m.getZoom() >= DOTS_UNTIL) return;
+      const c = Math.floor((e.lngLat.wrap().lng + 180) / 0.25), r = Math.floor((e.lngLat.lat + 90) / 0.25);
+      const lon = -180 + (c + 0.5) * 0.25, lat = -90 + (r + 0.5) * 0.25;
+      const f = L.fires?.features.find((x) => x.properties.lon === lon && x.properties.lat === lat);
+      L.onPick?.({ lon, lat, cells: f ? +f.properties.cells : 0, frp: f ? +f.properties.frp : 0 });
+    });
+    for (const id of ['fires', 'firecells', 'firecells-3d']) {
       m.on('mousemove', id, showTip);
       m.on('mouseleave', id, hideTip);
       m.on('click', id, (e) => {
@@ -259,6 +285,9 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
     const e = stepExpression(variable, theme.ramp);
     m.setPaintProperty('fires', 'circle-color', e);
     m.setPaintProperty('firecells', 'fill-color', e);
+    m.setPaintProperty('firecells-3d', 'fill-extrusion-color', e);
+    m.setPaintProperty('firecells-3d', 'fill-extrusion-height', ['*', stepIndex(variable), BLOCK_STEP_M]);
+    m.setPaintProperty('fires-smooth', 'heatmap-weight', heatWeight(variable));
   }), [variable, theme]);
 
   useEffect(() => whenReady((m) => {
@@ -269,7 +298,7 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
   useEffect(() => whenReady((m) => {
     m.getSource('area').setData(areaFeature(area?.geom));
     if (area?.box && area.box.e - area.box.w < 300) {
-      m.fitBounds([[area.box.w, area.box.s], [area.box.e, area.box.n]], { padding: 40, maxZoom: 7, duration: motion(600) });
+      m.fitBounds([[area.box.w, area.box.s], [area.box.e, area.box.n]], { padding, maxZoom: 7, duration: motion(flight) });
     }
   }), [area]);  // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -280,9 +309,16 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
   // ---- which layer: the harmonised record (monthly) or the recent detections (raw FIRMS NRT)
   useEffect(() => whenReady((m) => {
     const recent = layerMode === 'recent';
-    for (const id of RECORD_LAYERS) m.setLayoutProperty(id, 'visibility', recent ? 'none' : 'visible');
+    const vis = { fires: display === 'grid', firecells: display !== 'blocks', 'fires-smooth': display === 'smooth', 'firecells-3d': display === 'blocks' };
+    for (const id of Object.keys(vis)) m.setLayoutProperty(id, 'visibility', !recent && vis[id] ? 'visible' : 'none');
     for (const id of RECENT_LAYERS) m.setLayoutProperty(id, 'visibility', recent ? 'visible' : 'none');
-  }), [layerMode]);
+    // 3D blocks: the flat map may tilt so the heights can be seen. Back to a flat view when they are switched off
+    const tilt = display === 'blocks' && !recent;
+    if (view !== '3d') {
+      if (tilt) { m.dragRotate.enable(); m.touchPitch.enable(); if (m.getPitch() < 30) m.easeTo({ pitch: 50, duration: motion(700) }); }
+      else { m.dragRotate.disable(); m.touchPitch.disable(); if (m.getPitch()) m.easeTo({ pitch: 0, bearing: 0, duration: motion(400) }); }
+    }
+  }), [layerMode, display, view]);  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => whenReady((m) => { m.getSource('recent-cells').setData(recentCells || EMPTY); }), [recentCells]);
   useEffect(() => whenReady((m) => { m.getSource('recent-pts').setData(recentPts || EMPTY); }), [recentPts]);
 
@@ -300,11 +336,11 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
     if (globe) {
       m.dragRotate.enable(); m.touchZoomRotate.enableRotation(); m.touchPitch.enable();
       m.setSky({ 'sky-color': theme.space, 'horizon-color': theme.horizon, 'fog-color': theme.space,
-        'atmosphere-blend': ['interpolate', ['linear'], ['zoom'], 0, 0.8, 5, 0.4, 8, 0] });
-    } else {
+        'atmosphere-blend': sky ? ['interpolate', ['linear'], ['zoom'], 0, 0.8, 5, 0.4, 8, 0] : 0 });
+    } else if (display !== 'blocks' || layerMode !== 'record') {
       m.dragRotate.disable(); m.touchZoomRotate.disableRotation(); m.touchPitch.disable();
       if (m.getPitch() || m.getBearing()) m.easeTo({ pitch: 0, bearing: 0, duration: motion(400) });
-    }
+    } else m.touchZoomRotate.disableRotation();
     el.current.style.background = globe ? theme.space : '';
   }), [view, theme]);  // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -334,7 +370,7 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
   // ---- focus on the selected area (same framing as when an area is chosen)
   useEffect(() => {
     if (!focusKey || !area?.box) return;
-    whenReady((m) => m.fitBounds([[area.box.w, area.box.s], [area.box.e, area.box.n]], { padding: 40, maxZoom: 7, duration: motion(600) }));
+    whenReady((m) => m.fitBounds([[area.box.w, area.box.s], [area.box.e, area.box.n]], { padding, maxZoom: 7, duration: motion(flight) }));
   }, [focusKey]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { if (map.current) map.current.getCanvas().style.cursor = drawing ? 'crosshair' : ''; }, [drawing]);

@@ -33,6 +33,58 @@ const T = {
 
   views: { explore: 'Explore', switch: 'The 2012 switch', validation: 'Validation', method: 'Method and data' },
   // UI lab shell (13 Nov): clicking a day or month in the charts moves the map to that month (TIME-02)
+  // UI lab (14 Nov): the template gallery and the lab tools. Only shown when a template is chosen (t= in the link)
+  lab: {
+    galleryLink: 'UI lab: six designs',
+    galleryTitle: 'SHIFT UI lab: six designs to compare',
+    galleryLede: 'Each design below is a working preview of the same SHIFT site: the same harmonised record, the same calendars, '
+      + 'validation and area tools, and the same numbers. Only the layout, the navigation and the look change. '
+      + 'Pick one, explore an area, then switch design to compare. None of these designs is on the official site.',
+    current: 'Current site (control)',
+    currentBlurb: 'The official site as it is today: tabs, the map and the story side by side. Use it as the baseline.',
+    open: (name) => `Open ${name}`,
+    change: 'Design',
+    gallery: 'All designs',
+    preview: 'Design preview',
+    real: 'Working with real SHIFT data: map and globe, harmonised record and recent detections, area choice, '
+      + 'calendar, month grid, trend, validation, method, downloads.',
+    notYet: 'Not available in any design yet: drawing a free polygon, several areas at once, and a minimum-area check. '
+      + 'They need changes to the analysis code and a scientific rule, so they come after the event.',
+    tools: { explore: 'Explore', area: 'Area', layers: 'Map and layers', calendar: 'Calendars', research: 'Research panel',
+      validation: 'Evidence', export: 'Download and share', switch: 'The 2012 switch', validationPage: 'Validation',
+      method: 'Method and data', settings: 'Settings' },
+    close: 'Close',
+    closePanel: 'Close the research panel',
+    openPanel: 'Open the research panel',
+    sheet: { peek: 'Show a little', half: 'Show half', full: 'Show all' },
+    display: 'Map display',
+    displays: { grid: '0.25° cells', smooth: 'Smooth overview', blocks: '3D blocks' },
+    displayNote: {
+      grid: 'Each square is one 0.25° map cell.',
+      smooth: 'Smooth overview: the same cells blurred for the world view. It is a picture, not a value between cells. '
+        + 'Zoom in for the exact 0.25° squares. A click opens the cell under the pointer.',
+      blocks: 'Height repeats the colour step of each 0.25° square (steps 1 to 6). It is not a measured height and not a danger level.',
+    },
+    quality: 'Graphics',
+    qualities: { standard: 'Standard', performance: 'Performance' },
+    qualityNote: 'Performance switches off camera flights, smoothing, 3D blocks and see-through panels. No number changes.',
+    calendars: { daily: 'Every day since 2002 (daily)', months: 'Each month against its normal', compare: 'Same dates in every year' },
+    calendarsNote: 'A click on a day, month or point in these charts moves the map to that month.',
+    compareTwo: 'Comparing two areas side by side is not available yet (needs the analysis code to hold two areas).',
+    evidence: { overview: 'Overview', evidence: 'Evidence', limits: 'Limits' },
+    evidenceOverview: 'SHIFT puts MODIS (2002 to 2012) on the VIIRS S-NPP scale with factors measured for each place and calendar month, '
+      + 'and shows each month against the area\'s own normal.',
+    evidenceEvidence: 'Every check with its numbers and its limits is on the Validation page. This panel does not repeat or summarise them as a score.',
+    openValidation: 'Open the Validation page',
+    openSwitch: 'Open The 2012 switch',
+    openMethod: 'Open Method and data',
+    startTitle: 'Choose an area',
+    startOpen: 'Open the area tools',
+    areaNotYet: 'Not available yet',
+    areaNotYetItems: ['Drawing a free polygon (Draw makes a box today)', 'Several areas at once', 'A minimum-area check'],
+    areaNotYetWhy: 'These need changes to the analysis code and a scientific rule that is fixed before it is used.',
+    settingsTheme: 'Colour theme',
+  },
   sync: {
     hint: (what, m) => `${what} The map shows ${m}.`,
     recent: (what) => `${what} The map is showing recent detections, so switch the layer to the record to see it.`,
