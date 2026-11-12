@@ -1,7 +1,7 @@
 // The Explore page: map on one side, the story of the chosen area on the other.
 // Layout and order of the sections can be changed freely; the numbers come from lib/.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import T, { MONTHS_LONG, fmtDate } from '../content/text.js';
+import T, { MONTHS_LONG, fmtDate, fmtDay } from '../content/text.js';
 import PLACES from '../content/places.js';
 import MapView from '../components/MapView.jsx';
 import MapBoundary from '../components/MapBoundary.jsx';
@@ -25,7 +25,7 @@ import { detectionInfo, minuteToIso, recentFreshness, recentOverview, recentPoin
 import { RECENT_POINTS_FROM } from '../components/MapView.jsx';
 import { areaRange, compareWindow, monthly, normalMonth, season, summary } from '../lib/analysis.js';
 import { slug } from '../lib/downloads.js';
-import { fmt, longDate } from '../lib/format.js';
+import { fmt } from '../lib/format.js';
 import { writeHash } from '../lib/url.js';
 
 export default function Explore({ meta, theme, params }) {
@@ -241,7 +241,7 @@ export default function Explore({ meta, theme, params }) {
             <p><b>{cmp.rank ? `#${cmp.rank}` : '–'}</b><span>{cmp.rank ? T.summary.rankOf(cmp.of) : ''}</span></p>
           </div>
         ) : <p className="small muted">{loading ? T.loading : ''}</p>}
-        {cmp?.target && <p className="small">{T.summary.periods(longDate(dateOf(meta, cmp.target.from)), longDate(dateOf(meta, cmp.target.to)),
+        {cmp?.target && <p className="small">{T.summary.periods(fmtDay(dateOf(meta, cmp.target.from)), fmtDay(dateOf(meta, cmp.target.to)),
           layerMode === 'recent' ? T.summary.mapRecent : T.summary.mapMonth(MONTHS_LONG[+month.slice(5, 7) - 1], month.slice(0, 4)))}</p>}
       </section>
       <section className="mapside">
@@ -370,7 +370,7 @@ export default function Explore({ meta, theme, params }) {
         {error && <p className="notice" role="alert">{error}</p>}
 
         <div className="print-only print-head">
-          <b>{T.brand}</b> · {T.dataTo(longDate(dateOf(meta, lastK)))} · printed {new Date().toISOString().slice(0, 10)} · {location.href}
+          <b>{T.brand}</b> · {T.dataTo(fmtDay(dateOf(meta, lastK)))} · printed {new Date().toISOString().slice(0, 10)} · {location.href}
         </div>
         <h2>{area.name}</h2>
         <p className="small">{area.tested ? `${T.area.tested} ` : ''}{T.area.edgeNote}</p>
@@ -397,7 +397,7 @@ export default function Explore({ meta, theme, params }) {
 
             <ChartCard title={T.headings.months} file={file('months')} theme={theme} imageTitle={`${area.name}: each month against its normal (${mLabel.toLowerCase()})`}
               note={T.monthGrid.classMeaning}>
-              <MonthGrid monthly={mon} variable={variable} theme={theme} falseAlarm={falseAlarm} recordEnd={longDate(dateOf(meta, lastK))} />
+              <MonthGrid monthly={mon} variable={variable} theme={theme} falseAlarm={falseAlarm} recordEnd={fmtDay(dateOf(meta, lastK))} />
             </ChartCard>
 
             <ChartCard title={T.headings.trend} file={file('trend')} theme={theme} imageTitle={`${area.name}: monthly ${mLabel.toLowerCase()}`}

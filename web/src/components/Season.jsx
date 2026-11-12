@@ -1,10 +1,10 @@
 // "When the fire season comes": the average year for the area, the usual season, its peak, and
 // where today sits in it. Built from the baseline years only; a guide to timing, not a forecast.
 import { useEffect, useRef, useState } from 'react';
-import T, { MONTHS } from '../content/text.js';
+import T, { MONTHS, fmtDay } from '../content/text.js';
 import { doyLabel } from '../lib/analysis.js';
 import { dateOf, lastDataDay } from '../lib/data.js';
-import { longDate } from '../lib/format.js';
+
 
 export default function Season({ meta, sea, theme }) {
   const wrap = useRef(null);
@@ -23,7 +23,7 @@ export default function Season({ meta, sea, theme }) {
   const y = (v) => t + (1 - v / max) * (h - t - b);
   const path = sea.smooth.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)},${y(v).toFixed(1)}`).join('') + `L${x(364)},${y(0)}L${x(0)},${y(0)}Z`;
   const arcs = sea.start <= sea.end ? [[sea.start, sea.end]] : [[sea.start, 364], [0, sea.end]];
-  const today = longDate(dateOf(meta, lastDataDay(meta)));
+  const today = fmtDay(dateOf(meta, lastDataDay(meta)));
 
   return (
     <div ref={wrap}>

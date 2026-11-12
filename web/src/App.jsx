@@ -1,13 +1,13 @@
 // The app shell: header, navigation between views, the colour theme, and loading meta.json.
 import { useEffect, useState } from 'react';
-import T from './content/text.js';
+import T, { fmtDay } from './content/text.js';
 import useTheme from './theme/useTheme.js';
 import Explore from './pages/Explore.jsx';
 import Switch2012 from './pages/Switch2012.jsx';
 import Validation from './pages/Validation.jsx';
 import Method from './pages/Method.jsx';
 import { dateOf, json, lastDataDay } from './lib/data.js';
-import { longDate } from './lib/format.js';
+
 import { readHash, writeHash } from './lib/url.js';
 import { recentFreshness, recentStatus } from './lib/recent.js';
 
@@ -36,7 +36,7 @@ export default function App() {
           <p>{T.tagline}</p>
         </div>
         <div className="top-right">
-          {meta && <span className="badge">{T.dataTo(longDate(dateOf(meta, lastDataDay(meta))))}</span>}
+          {meta && <span className="badge">{T.dataTo(fmtDay(dateOf(meta, lastDataDay(meta))))}</span>}
           {recent?.latest_detection_utc && <span className={recentFreshness(recent)?.stale ? 'badge warn' : 'badge'}>{T.recentTo(recent.latest_detection_utc,
             recentFreshness(recent)?.stale)}</span>}
           <label className="theme-pick">{T.theme.label}

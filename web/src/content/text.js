@@ -19,6 +19,9 @@ export function fmtDate(s) {
   return hh ? `${day}, ${hh}:${mm} UTC` : day;
 }
 
+// The same style for a Date object (replaces toLocaleDateString, which wrote "Sept" while the rest of the site wrote "Sep").
+export const fmtDay = (d) => fmtDate(d.toISOString().slice(0, 10));
+
 const T = {
   brand: 'SHIFT',
   tagline: 'One fire record from two generations of NASA satellites, from 2002 to the latest data',

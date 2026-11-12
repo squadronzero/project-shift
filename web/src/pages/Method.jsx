@@ -1,10 +1,10 @@
 // Method and data: how the record is built, its limits, and every source.
-import T from '../content/text.js';
+import T, { fmtDay } from '../content/text.js';
 import { dateOf, lastDataDay } from '../lib/data.js';
-import { longDate } from '../lib/format.js';
+
 
 export default function Method({ meta }) {
-  const last = meta ? longDate(dateOf(meta, lastDataDay(meta))) : null;
+  const last = meta ? fmtDay(dateOf(meta, lastDataDay(meta))) : null;
   return (
     <main className="page prose">
       <h2>How SHIFT builds one record from two satellites</h2>

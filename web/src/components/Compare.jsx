@@ -1,8 +1,8 @@
 // "Now against the past" (D32): a window of dates (this month so far, the last 30 days or the
 // user's dates) against the same dates in every other year: median, rank and ratio.
 import { useEffect, useRef, useState } from 'react';
-import T, { MONTHS_LONG, rangeShort } from '../content/text.js';
-import { compact, fmt, longDate } from '../lib/format.js';
+import T, { MONTHS_LONG, rangeShort, fmtDay } from '../content/text.js';
+import { compact, fmt } from '../lib/format.js';
 import { dateOf, iso, lastDataDay } from '../lib/data.js';
 
 export default function Compare({ meta, cmp, variable, theme, mode, setMode, monthShare, dates, setDates }) {
@@ -55,7 +55,7 @@ export default function Compare({ meta, cmp, variable, theme, mode, setMode, mon
   const clipped = ys.some((row) => row.rangePct != null && row.usable && hi(row) > max);
   const bw = (width - l - r) / Math.max(ys.length, 1);
   const y = (v) => t + (1 - v / max) * (h - t - b);
-  const from = longDate(dateOf(meta, tgt?.from ?? 0)), to = longDate(dateOf(meta, tgt?.to ?? 0));
+  const from = fmtDay(dateOf(meta, tgt?.from ?? 0)), to = fmtDay(dateOf(meta, tgt?.to ?? 0));
   const hv = hover != null ? ys[hover] : null;
 
   return (
