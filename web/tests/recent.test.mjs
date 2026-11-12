@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 import { gzipSync } from 'node:zlib';
 import { recentFreshness, recentOverview, recentPoints, recentStatus, missingCoverage, resetRecentForTests, snapshotId, SnapshotMismatch,
   STALE_AFTER_HOURS, PERIODS } from '../src/lib/recent.js';
-import T from '../src/content/text.js';
+import T, { fmtDate } from '../src/content/text.js';
 
 const H = 3.6e6;
 const status = (over = {}) => ({
@@ -37,7 +37,7 @@ test('a snapshot kept after a failed refresh is never current, and says when the
   assert.equal(f.fallback, true);
   assert.equal(f.attempted, '2026-11-11 11:17 UTC');
   assert.equal(f.retrieved, '2026-11-11 08:28 UTC');
-  assert.match(T.recent.stale(f.retrieved), /^Recent observations are not current\. Showing the last successful dataset, retrieved on 2026-11-11 08:28 UTC\.$/);
+  assert.match(T.recent.stale(f.retrieved), /^Recent observations are not current\. Last updated 11 Nov 2026, 08:28 UTC\. Showing the last successful dataset\.$/);
 });
 
 test('a delayed feed is pointed out', () => {
@@ -54,7 +54,7 @@ test('an incomplete snapshot names what is missing and never calls it no fire', 
   assert.equal(f.incomplete, true);
   assert.deepEqual(missingCoverage(s), [{ satellite: 'N21', from: '2026-11-08', days: 4 }]);
   const text = T.recent.missing(f.missing.map(T.recent.missingItem).join(', '));
-  assert.equal(text, 'Incomplete: no data was received for NOAA-21 from 2026-11-08 (4 days). Missing data is not "no fire".');
+  assert.equal(text, 'Incomplete: no data was received for NOAA-21 from 8 Nov 2026 (4 days). Missing data is not "no fire".');
 });
 
 test('no snapshot means no freshness, not a fabricated one', () => {
@@ -67,8 +67,8 @@ test('the period labels say where the period ends', () => {
   assert.match(T.recent.periods['7d'], /newest detection/);
   assert.doesNotMatch(JSON.stringify(T.recent.periods), /Last 24 hours|Last 7 days/);
   assert.match(T.recent.fetched('a', 'b', 'c'), /not at the current time/);
-  assert.equal(T.recentTo('2026-11-11 08:00 UTC', true), 'Recent detections to 2026-11-11 08:00 UTC (not current)');
-  assert.equal(T.recentTo('2026-11-11 08:00 UTC', false), 'Recent detections to 2026-11-11 08:00 UTC');
+  assert.equal(T.recentTo('2026-11-11 08:00 UTC', true), 'Recent detections to 11 Nov 2026, 08:00 UTC (not current)');
+  assert.equal(T.recentTo('2026-11-11 08:00 UTC', false), 'Recent detections to 11 Nov 2026, 08:00 UTC');
 });
 
 // ---------------------------------------------------------------- data loading with a fake server
@@ -159,5 +159,22 @@ test('D2: completed days with no detections are named as missing coverage', () =
   assert.deepEqual(missingCoverage(s), [{ satellite: 'N21', from: '2026-11-01', days: 3 }, { satellite: 'N21', from: '2026-11-05', days: 1 }]);
   const f = recentFreshness(s, Date.parse('2026-11-11T09:00:00Z'));
   assert.equal(T.recent.missing(f.missing.map(T.recent.missingItem).join(', ')),
-    'Incomplete: no data was received for NOAA-21 from 2026-11-01 (3 days), NOAA-21 from 2026-11-05 (1 day). Missing data is not "no fire".');
+    'Incomplete: no data was received for NOAA-21 from 1 Nov 2026 (3 days), NOAA-21 from 5 Nov 2026 (1 day). Missing data is not "no fire".');
+});
+
+// 12 Nov: one way of writing dates on the site. The stale wording keeps "not current" and gives the age.
+test('dates are written one way on the site (display only, ISO stays in files and links)', () => {
+  assert.equal(fmtDate('2026-11-11'), '11 Nov 2026');
+  assert.equal(fmtDate('2026-11'), 'Nov 2026');
+  assert.equal(fmtDate('2026-11-11T23:50Z'), '11 Nov 2026, 23:50 UTC');
+  assert.equal(fmtDate('2026-11-11T23:50:00Z'), '11 Nov 2026, 23:50 UTC');
+  assert.equal(fmtDate('2026-11-11 08:28 UTC'), '11 Nov 2026, 08:28 UTC');
+  assert.equal(fmtDate('not a date'), 'not a date');
+  assert.equal(fmtDate(undefined), undefined);
+});
+test('the not-current notice says how old the data is', () => {
+  assert.match(T.recent.stale('2026-11-11 08:28 UTC', 23), /not current\. Last updated 11 Nov 2026, 08:28 UTC, about 23 h ago\./);
+  assert.match(T.recent.stale('2026-11-11 08:28 UTC', 72), /about 3 days ago/);
+  assert.match(T.recent.fetched('2026-11-11T08:28:00Z', '2026-10-28', '2026-11-11 08:00 UTC', true), /^Detections from 28 Oct 2026/);
+  assert.match(T.recent.fetched('2026-11-11T08:28:00Z', '2026-10-28', '2026-11-11 08:00 UTC', false), /^Retrieved from NASA FIRMS 11 Nov 2026, 08:28 UTC\./);
 });

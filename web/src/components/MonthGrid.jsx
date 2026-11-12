@@ -3,13 +3,14 @@ import { useState } from 'react';
 import T, { MONTHS } from '../content/text.js';
 import { fmt } from '../lib/format.js';
 
-export default function MonthGrid({ monthly, variable, theme, falseAlarm }) {
+export default function MonthGrid({ monthly, variable, theme, falseAlarm, recordEnd }) {
   const [tip, setTip] = useState(null);
   const rows = monthly.rows;
   const years = [...new Set(rows.map((r) => r.year))];
   const cell = 18, gap = 2, left = 40, top = 16;
   const width = left + 12 * (cell + gap), height = top + years.length * (cell + gap);
   const anyCloud = rows.some((r) => r.cloudy);
+  const inProgress = rows.some((r) => r.incomplete && !r.nodata);   // the latest month: the record ends inside it
   return (
     <figure className="chart">
       <div className="monthgrid">
@@ -39,7 +40,7 @@ export default function MonthGrid({ monthly, variable, theme, falseAlarm }) {
             <b>{MONTHS[tip.r.month]} {tip.r.year}</b><br />
             {fmt(tip.r.value, variable)}<br />
             {tip.r.notComparable ? T.monthGrid.terra
-              : tip.r.incomplete ? T.monthGrid.incomplete(tip.r.nodata)
+              : tip.r.incomplete ? T.monthGrid.incomplete(tip.r.nodata, recordEnd)
               : tip.r.cls ? T.monthGrid.classed(T.classes[tip.r.cls], MONTHS[tip.r.month], tip.r.z.toFixed(1)) : T.monthGrid.tooFew}
             {tip.r.modisEra && tip.r.cls && (tip.r.cls === 'unusual' || tip.r.cls === 'critical') &&
               <><br />{T.monthGrid.falseAlarm(Math.round(falseAlarm))}</>}
@@ -50,6 +51,7 @@ export default function MonthGrid({ monthly, variable, theme, falseAlarm }) {
       <figcaption className="legend">
         {['low', 'normal', 'unusual', 'critical'].map((c) => <span key={c}><span className="swatch" style={{ background: theme.cls[c] }} /> {T.classes[c]}</span>)}
         <span><span className="swatch hatch" /> {T.monthGrid.notClassed}</span>
+        {inProgress && <span><span className="swatch hatch" /> {T.monthGrid.inProgress(recordEnd)}</span>}
         <span><span className="dot" /> {T.monthGrid.before2012}</span>
         {(anyCloud || monthly.cloudUntil) && <span><span className="dot cloud" style={{ background: theme.cloud }} /> {T.monthGrid.cloudy}</span>}
       </figcaption>

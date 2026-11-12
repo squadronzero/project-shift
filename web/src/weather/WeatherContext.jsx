@@ -1,9 +1,9 @@
 // "Weather at the time" (D39): NASA POWER weather over the same dates as "Now against the past".
 // Context only, never a cause. Shown for the preset areas, whose weather ships with the site.
 import { useEffect, useMemo, useState } from 'react';
-import T from '../content/text.js';
+import T, { fmtDay } from '../content/text.js';
 import { dateOf } from '../lib/data.js';
-import { longDate } from '../lib/format.js';
+
 import { compareWeather, loadPreset } from './weather.js';
 
 const isoOf = (meta, k) => dateOf(meta, k).toISOString().slice(0, 10);
@@ -39,7 +39,7 @@ export default function WeatherContext({ meta, cmp, area }) {
     <div className="weather">
       <h4>{W.title}</h4>
       {firsts.length > 0 && <p className="weather-lead">{W.lead(of, firsts)}</p>}
-      {rows.length === 0 ? <p className="small">{W.noData(longDate(new Date(Date.parse(res.end + 'T00:00:00Z'))))}</p> : (
+      {rows.length === 0 ? <p className="small">{W.noData(fmtDay(new Date(Date.parse(res.end + 'T00:00:00Z'))))}</p> : (
         <>
         {/* phones: one block per measure, so nothing scrolls sideways (the table is hidden below 600px) */}
         <ul className="weather-cards">
@@ -72,7 +72,7 @@ export default function WeatherContext({ meta, cmp, area }) {
       {rows.length > 0 && <p className="small">{W.rankNote}</p>}
       {res.provisional && <p className="small weather-note">{W.provisional}</p>}
       <p className="small weather-note">{W.notCause}</p>
-      <p className="small">{W.source(base?.baseCount ?? 0, cmp.baseline[0], cmp.baseline[1], longDate(new Date(Date.parse(res.end + 'T00:00:00Z'))), w.points?.length ?? 9)}</p>
+      <p className="small">{W.source(base?.baseCount ?? 0, cmp.baseline[0], cmp.baseline[1], fmtDay(new Date(Date.parse(res.end + 'T00:00:00Z'))), w.points?.length ?? 9)}</p>
     </div>
   );
 }

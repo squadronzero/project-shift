@@ -146,7 +146,9 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
           'circle-stroke-width': ['match', ['get', 'conf'], 'l', 1.2, 0.5] } });
       m.addSource('area', { type: 'geojson', data: EMPTY });
       m.addLayer({ id: 'area-fill', type: 'fill', source: 'area', paint: { 'fill-color': theme.area, 'fill-opacity': 0.06 } });
-      m.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': theme.area, 'line-width': 1.5 } });
+      // the analysed area: a light halo under a stronger line, so the outline reads on the satellite backdrops too (12 Nov)
+      m.addLayer({ id: 'area-halo', type: 'line', source: 'area', paint: { 'line-color': theme.surface, 'line-width': 5, 'line-opacity': 0.7 } });
+      m.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': theme.area, 'line-width': 2.2 } });
       m.addSource('pick', { type: 'geojson', data: EMPTY });
       m.addLayer({ id: 'pick', type: 'line', source: 'pick', paint: { 'line-color': theme.select, 'line-width': 2.5 } });
       // place names on top (symbols never take clicks), fewer and smaller on a narrow screen

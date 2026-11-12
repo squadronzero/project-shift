@@ -42,6 +42,7 @@ with sync_playwright() as p:
     res["record_drawn_in_recent_mode"] = pg.evaluate(COUNT, "fires") + pg.evaluate(COUNT, "firecells")
     res["story_unchanged_by_layer"] = pg.evaluate(STORY) == story_before
     res["mapbar"] = pg.inner_text(".mapbar")
+    pg.evaluate("() => { const d = document.querySelector('.legendbox'); if (d && !d.open) d.open = true; }")  # the legend may start closed (12 Nov)
     res["legend"] = pg.inner_text(".maplegend")[:300]
     res["hash"] = pg.evaluate("() => location.hash")
     pg.screenshot(path=f"{out}/1_recent_overview_world.png")
@@ -55,6 +56,7 @@ with sync_playwright() as p:
     pg.evaluate("() => window.__shiftMap.jumpTo({ center: [22.5, 5], zoom: 7.2 })")
     pg.wait_for_timeout(6000)
     res["points_drawn_zoomed"] = pg.evaluate(COUNT, "recent-pts")
+    pg.evaluate("() => { const d = document.querySelector('.legendbox'); if (d && !d.open) d.open = true; }")  # the legend may start closed (12 Nov)
     res["legend_zoomed"] = pg.inner_text(".maplegend")[:120]
     pg.screenshot(path=f"{out}/2_recent_points_globe_africa.png")
 

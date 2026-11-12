@@ -36,12 +36,18 @@ export default function AreaPicker({ area, setArea, drawing, setDrawing, setErro
 
   return (
     <div className="area-picker">
-      <div className="seg" role="tablist" aria-label={T.area.heading}>
+      {/* five ways to choose: buttons on wide screens, one dropdown under 600px where the buttons wrapped badly (12 Nov) */}
+      <div className="seg area-modes" role="tablist" aria-label={T.area.heading}>
         {Object.entries(T.area.modes).map(([id, label]) => (
           <button key={id} role="tab" aria-selected={mode === id} className={mode === id ? 'on' : ''}
             onClick={() => { setMode(id); setDrawing(id === 'draw'); }}>{label}</button>
         ))}
       </div>
+      <label className="area-modes-select">{T.area.modePick}
+        <select value={mode} onChange={(e) => { setMode(e.target.value); setDrawing(e.target.value === 'draw'); }}>
+          {Object.entries(T.area.modes).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
+        </select>
+      </label>
       <div className="area-form">
         {mode === 'preset' && (
           <label>{T.area.preset}

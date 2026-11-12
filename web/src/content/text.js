@@ -7,12 +7,29 @@
 export const RANGE_CAVEAT = 'The range covers only the MODIS-to-VIIRS conversion error. Its 95% coverage was not checked independently, so it is a guide, not a guaranteed bound (see Method).';
 export const rangeShort = (p) => `95% range ±${p}% (conversion error only, not a guaranteed bound)`;
 
+// One way of writing dates and times on the site (12 Nov 2026): "11 Nov 2026" and "11 Nov 2026, 23:50 UTC".
+// Display only. CSV files and the page address keep ISO dates (2026-11-11). Accepts "2026-11-11", "2026-11",
+// "2026-11-11T23:50Z", "2026-11-11T23:50:00Z" and "2026-11-11 23:50 UTC"; anything else is returned unchanged.
+const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+export function fmtDate(s) {
+  const m = /^(\d{4})-(\d{2})(?:-(\d{2}))?(?:[T ](\d{2}):(\d{2})(?::\d{2})?(?:Z| UTC)?)?$/.exec(String(s ?? '').trim());
+  if (!m) return s;
+  const [, y, mo, d, hh, mm] = m;
+  const day = d ? `${+d} ${SHORT_MONTHS[+mo - 1]} ${y}` : `${SHORT_MONTHS[+mo - 1]} ${y}`;
+  return hh ? `${day}, ${hh}:${mm} UTC` : day;
+}
+
+// The same style for a Date object (replaces toLocaleDateString, which wrote "Sept" while the rest of the site wrote "Sep").
+export const fmtDay = (d) => fmtDate(d.toISOString().slice(0, 10));
+
 const T = {
   brand: 'SHIFT',
   tagline: 'One fire record from two generations of NASA satellites, from 2002 to the latest data',
   dataTo: (d) => `Record to ${d}`,
-  recentTo: (t, stale) => `Recent detections to ${t}${stale ? ' (not current)' : ''}`,
+  recentTo: (t, stale) => `Recent detections to ${fmtDate(t)}${stale ? ' (not current)' : ''}`,
   notOfficial: 'Team Squadron Zero · NASA Space Apps Challenge 2026 · not an official NASA product',
+  skip: 'Skip to results',
+  aboutData: 'About this data',
 
   views: { explore: 'Explore', switch: 'The 2012 switch', validation: 'Validation', method: 'Method and data' },
   theme: { system: 'Auto', light: 'Light', dark: 'Dark', label: 'Colour theme' },
@@ -20,6 +37,10 @@ const T = {
   // ---------------------------------------------------------------- the two measures (D31)
   measures: { cells: 'Hotspots', frp: 'Fire power' },
   units: { cells: 'hotspots', frp: 'MW' },
+  // the unit written out beside totals and on chart axes (12 Nov): fire power totals are daily FRP sums added
+  // together, an index (see hotspotDefinition and the Method page), so they are never called energy
+  unitsLong: { cells: 'hotspots (cell-days)', frp: 'summed daily FRP (MW)' },
+  unitsNote: { cells: '', frp: 'Summed daily fire radiative power: an index of intense burning, not an amount of energy.' },
   hotspotDefinition: 'A hotspot is a 0.05° grid cell (about 5 km) with fire on a day. Counting cells instead of raw '
     + 'detections stops the finer VIIRS pixels from inflating the count. Fire power is the fire radiative power (MW) of the '
     + 'detections, added up per day. Monthly and yearly fire power add those daily sums together, so they are an index of how '
@@ -44,6 +65,8 @@ const T = {
     tested: 'One of SHIFT\'s ten tested regions: its own checks are on the Validation page.',
     share: 'Copy share link',
     copied: 'Link copied',
+    modePick: 'How to choose the area',
+    notFound: (spec, fallback) => `Couldn't find the area "${spec}" in this link, showing ${fallback} instead.`,
   },
 
   // ---------------------------------------------------------------- recent detections (D38)
@@ -53,19 +76,22 @@ const T = {
     period: 'Period',
     // The periods end at the newest detection in the snapshot, not at the current time (Task 2, WP3).
     periods: { '24h': '24 h to the newest detection', '7d': '7 days to the newest detection', all: 'Since 28 Oct' },
-    fetched: (when, from, to) => `Retrieved from NASA FIRMS ${when}. Detections from ${from} to ${to} (the newest one). `
+    // When the data is not current, the callout below carries the retrieval time, so it is not repeated here (12 Nov).
+    fetched: (when, from, to, stale) => `${stale ? '' : `Retrieved from NASA FIRMS ${fmtDate(when)}. `}Detections from ${fmtDate(from)} to ${fmtDate(to)} (the newest one). `
       + 'Periods end at the newest detection, not at the current time.',
-    stale: (when) => `Recent observations are not current. Showing the last successful dataset, retrieved on ${when}.`,
-    fallback: (when) => `The refresh of ${when} did not complete, so this earlier dataset is kept unchanged.`,
+    stale: (when, ageHours) => `Recent observations are not current. Last updated ${fmtDate(when)}${
+      ageHours != null ? `, about ${ageHours < 48 ? `${ageHours} h` : `${Math.round(ageHours / 24)} days`} ago` : ''}. Showing the last successful dataset.`,
+    fallback: (when) => `The refresh of ${fmtDate(when)} did not complete, so this earlier dataset is kept unchanged.`,
     feedLag: (h) => `The newest detection is ${h} hours older than the retrieval: FIRMS may be delayed.`,
     missing: (list) => `Incomplete: no data was received for ${list}. Missing data is not "no fire".`,
-    missingItem: (m) => `${m.satellite === 'N21' ? 'NOAA-21' : m.satellite === 'N20' ? 'NOAA-20' : m.satellite} from ${m.from} (${m.days} day${m.days === 1 ? '' : 's'})`,
+    missingItem: (m) => `${m.satellite === 'N21' ? 'NOAA-21' : m.satellite === 'N20' ? 'NOAA-20' : m.satellite} from ${fmtDate(m.from)} (${m.days} day${m.days === 1 ? '' : 's'})`,
     unavailable: 'Recent detections are not available in this build (the last fetch failed or has not run). '
       + 'The harmonised record is not affected.',
     incomplete: 'Some recent data could not be fetched, so some days may be missing. Missing days are not "no fire".',
     zoomHint: 'Zoom in to see single detections. Click a cell to zoom to it.',
     tooMany: 'Showing the nearest areas only. Zoom in further to see every detection here.',
     loading: 'Loading detections…',
+    loadingLayer: 'Loading recent detections…',
     updating: 'Recent detections are being updated, and the files on the server do not all belong to the same update yet. '
       + 'Nothing is shown rather than a mix. Reload in a few minutes. The harmonised record is not affected.',
     tilesMissing: 'Some single detections in view could not be loaded (the data may be updating). Reload in a few minutes.',
@@ -122,6 +148,7 @@ const T = {
     focus: 'Focus on area',
     done: 'Done',
     settingsButton: (layer, view) => `Map settings: ${layer}, ${view}`,
+    loading: 'Loading the map…',
     gaps: 'Show satellite gaps',
     play: 'Play months', pause: 'Pause', speed: 'Speed',
     speeds: { 2000: 'Slow', 1000: 'Normal', 500: 'Fast' },
@@ -135,8 +162,8 @@ const T = {
     keys: 'Keys: arrows move, + and − zoom, Shift with arrows tilts and turns (3D).',
 
     // ---- legend
-    legendToggle: 'Legend',
-    legendTitle: (v, ym) => `${v === 'frp' ? 'Fire power' : 'Hotspots'}, ${ym}, per 0.25° cell (about 25 km)`,
+    legendToggle: 'Map key',
+    legendTitle: (v, ym) => `${v === 'frp' ? 'Fire power' : 'Hotspots'}, ${fmtDate(ym)}, per 0.25° cell (about 25 km)`,
     legendUnit: { frp: 'MW summed over the days of the month (an index, not energy)', cells: 'hotspot cell-days in the month' },
     legendScale: 'S-NPP (VIIRS) scale throughout. Before 20 Jan 2012: MODIS put on that scale (an estimate).',
     legendSupport: 'Each square is a 0.25° grid cell, not a fire location. Zoomed out, cells are drawn as dots.',
@@ -198,8 +225,9 @@ const T = {
   // ---------------------------------------------------------------- compare (D32)
   compare: {
     modes: { month: 'Latest month so far', last30: 'Latest 30 days', custom: 'Your dates' },
-    customHint: 'Pick dates below (up to one year) to compare them with the same dates in every other year.',
+    customHint: 'Pick dates (up to one year) to compare them with the same dates in every other year.',
     tooLong: 'Choose at most one year of dates to compare with other years.',
+    datesNote: 'These dates also set the CSV downloads below.',
     window: (a, b) => `${a} to ${b}`,
     vsMedian: (ratio) => ratio == null ? 'No normal to compare with'
       : ratio >= 1.15 ? `${ratio.toFixed(1)}× the normal` : ratio <= 0.87 ? `${Math.round(ratio * 100)}% of the normal` : 'About normal',
@@ -208,6 +236,8 @@ const T = {
     monthShare: (pct, month) => `So far this month (to the last day with data) has had ${pct}% of the fire a normal ${month} brings in the whole month.`,
     left: (n) => `${n} year${n > 1 ? 's' : ''} left out because a satellite gap fell in these dates.`,
     targetGaps: (n) => `${n} day${n > 1 ? 's' : ''} in these dates had no satellite data, so this year may be undercounted.`,
+    // the short line stays visible under the chart; the full caveat sits behind "About this data" (12 Nov)
+    modisShort: 'Bars before 2012 are MODIS put on the VIIRS scale. The whisker is their calibrated 95% range (conversion error only, not a guaranteed bound).',
     modisNote: 'Bars before 2012 are MODIS put on the VIIRS scale. The whisker is their calibrated 95% range. ' + RANGE_CAVEAT,
     chartLabel: 'The same dates in every year',
     clippedSvg: '▲ range continues above',
@@ -298,9 +328,10 @@ const T = {
   classes: { low: 'Below normal', normal: 'Normal', unusual: 'Unusual', critical: 'Critical' },
   monthGrid: {
     label: 'Monthly anomaly classes, one row per year',
-    notClassed: 'not classed', before2012: 'before 2012, lower confidence', cloudy: 'cloudier than 90% of years',
+    notClassed: 'not classed (days without data)', before2012: 'before 2012, lower confidence', cloudy: 'cloudier than 90% of years',
+    inProgress: (end) => `month in progress (record ends ${end}), not classed yet`,
     terra: 'Terra only: not compared with later years',
-    incomplete: (n) => `Not classed: ${n ? `${n} day(s) without data` : 'month not complete'}`,
+    incomplete: (n, end) => `Not classed: ${n ? `${n} day(s) without data` : `month in progress, the record ends ${end}`}`,
     tooFew: 'Too few years to judge',
     classed: (cls, month, z) => `${cls} for ${month} (z = ${z})`,
     falseAlarm: (pct) => `MODIS years: about ${pct}% of such flags are not unusual in VIIRS (measured)`,
@@ -313,6 +344,7 @@ const T = {
     total: 'monthly total', range: '95% range of the scaling (MODIS years, conversion error only)', viirs: 'VIIRS',
     rangeTip: (a, b) => `95% range ${a} to ${b} (conversion error only)`,
   },
+  explainShort: 'VIIRS (S-NPP) scale throughout. Before 20 January 2012: MODIS put on that scale with a measured factor. The shaded band is that factor\'s calibrated 95% range (conversion error only, not a guaranteed bound).',
   explainScale: 'Values are on the VIIRS (S-NPP) scale throughout. Before 20 January 2012 they are MODIS observations '
     + 'put on that scale with a factor measured for this place and month. The shaded band is that factor\'s calibrated 95% range. '
     + RANGE_CAVEAT,
@@ -330,7 +362,7 @@ const T = {
     print: 'Print or save a one-page brief',
     png: 'PNG', svg: 'SVG',
     pngOnly: 'PNG image (this chart is drawn as a picture, so there is no SVG version)',
-    note: 'Dates apply to the CSV files and to "Your dates" above. Raw satellite points are not stored here. The FIRMS link opens them. '
+    note: 'Dates apply to the CSV files and to "Your dates" in "Now against the past". Raw satellite points are not stored here. The FIRMS link opens them. '
       + 'The range_95_pct column is the conversion-error range only, not a guaranteed 95% bound (see Method).',
   },
 };

@@ -1,13 +1,13 @@
 // The app shell: header, navigation between views, the colour theme, and loading meta.json.
 import { useEffect, useState } from 'react';
-import T from './content/text.js';
+import T, { fmtDay } from './content/text.js';
 import useTheme from './theme/useTheme.js';
 import Explore from './pages/Explore.jsx';
 import Switch2012 from './pages/Switch2012.jsx';
 import Validation from './pages/Validation.jsx';
 import Method from './pages/Method.jsx';
 import { dateOf, json, lastDataDay } from './lib/data.js';
-import { longDate } from './lib/format.js';
+
 import { readHash, writeHash } from './lib/url.js';
 import { recentFreshness, recentStatus } from './lib/recent.js';
 
@@ -27,14 +27,17 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* keyboard users: one stop before the map and its controls (12 Nov). A button, not a link, because the page
+          address carries the view and the shared area, and a #results link would overwrite it. */}
+      <button type="button" className="skip" onClick={() => { const el = document.getElementById('results') || document.querySelector('main'); el?.focus(); el?.scrollIntoView(); }}>{T.skip}</button>
       <header className="top">
         <div className="brand">
           <h1>{T.brand}</h1>
           <p>{T.tagline}</p>
         </div>
         <div className="top-right">
-          {meta && <span className="badge">{T.dataTo(longDate(dateOf(meta, lastDataDay(meta))))}</span>}
-          {recent?.latest_detection_utc && <span className="badge">{T.recentTo(recent.latest_detection_utc.replace('T', ' ').replace('Z', ' UTC'),
+          {meta && <span className="badge">{T.dataTo(fmtDay(dateOf(meta, lastDataDay(meta))))}</span>}
+          {recent?.latest_detection_utc && <span className={recentFreshness(recent)?.stale ? 'badge warn' : 'badge'}>{T.recentTo(recent.latest_detection_utc,
             recentFreshness(recent)?.stale)}</span>}
           <label className="theme-pick">{T.theme.label}
             <select value={mode} onChange={(e) => setMode(e.target.value)}>

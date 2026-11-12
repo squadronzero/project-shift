@@ -35,8 +35,15 @@ h1, h2, h3 { font-family: var(--font-heading); }
 .brand p { margin: 0; color: var(--muted); font-size: 14px; max-width: 46ch; }
 .top-right { display: flex; align-items: center; gap: 14px; padding-bottom: 12px; margin-left: auto; }
 .badge { font-size: var(--font-size-small); padding: 3px 9px; border: 1px solid var(--rule); border-radius: 999px; color: var(--muted); white-space: nowrap; }
+/* the recent-detections pill when the data is not current (12 Nov): it reads as a warning, not as plain grey */
+.badge.warn { border-color: var(--accent); color: var(--accent); font-weight: 650; }
+/* keyboard users: "Skip to results" is the first stop and is visible only while focused (12 Nov) */
+.skip { position: absolute; left: 8px; top: -100px; z-index: 20; font: inherit; padding: 12px 14px; min-height: 44px; background: var(--ink); color: var(--surface);
+  border: 0; border-radius: var(--radius); cursor: pointer; }
+.skip:focus-visible { top: 8px; }
 .theme-pick select { padding: 3px 6px; }
 nav { display: flex; gap: 4px; flex-wrap: wrap; width: 100%; }
+.story:focus { outline: none; }
 .tab {
   font: inherit; font-size: 14px; color: var(--muted); background: none; border: 0; cursor: pointer;
   padding: 8px 12px 12px; border-bottom: 3px solid transparent;
@@ -65,7 +72,7 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; width: 100%; }
   background: var(--surface); border-left: 3px solid var(--accent); font-size: var(--font-size-small);
 }
 .legendbox {
-  position: absolute; left: 10px; bottom: 10px; z-index: 2; max-width: min(340px, calc(100% - 140px));
+  position: absolute; left: 10px; bottom: 80px; z-index: 2; max-width: min(250px, calc(100% - 140px));   /* above the credit line and the scale bar */
   background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 6px 10px;
   font-size: 12px; box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
 }
@@ -74,6 +81,11 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; width: 100%; }
 .maplegend ul { list-style: none; margin: 4px 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
 .maplegend li { display: flex; align-items: center; gap: 6px; }
 .maplegend p { margin: 4px 0 0; color: var(--muted); }
+/* the first moment: the map is an empty box until its first layer arrives (12 Nov) */
+.maploading { position: absolute; inset: 0; margin: 0; display: grid; place-items: center; z-index: 1; pointer-events: none;
+  color: var(--muted); font-size: var(--font-size-small); }
+/* what the map shows: the sentences that used to sit inside the legend (12 Nov), under the map bar */
+.mapside .mapnotes { margin: 0; padding: 0 16px 10px; max-width: none; background: var(--surface); }
 .cellpanel {
   position: absolute; top: 130px; right: 10px; z-index: 3; width: min(320px, calc(100% - 20px)); max-height: calc(100% - 150px);
   overflow-y: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius);
@@ -91,6 +103,7 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; width: 100%; }
 }
 /* recent detections: not current, delayed or incomplete (Task 2). Plain and calm, beside the period */
 .recentnotice { flex-basis: 100%; border-left: 3px solid var(--muted); padding-left: 8px; color: var(--ink); }
+.recentnotice.warn { border-left-color: var(--accent); }
 .recentnotice p { margin: 2px 0; }
 .kinds { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); flex-wrap: wrap; }
 .story { overflow-y: auto; min-height: 0; padding: 16px 24px 40px; background: var(--surface); }
@@ -102,6 +115,10 @@ nav { display: flex; gap: 4px; flex-wrap: wrap; width: 100%; }
 .coords { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .coords input { width: 7ch; }
 .define summary { cursor: pointer; font-size: var(--font-size-small); color: var(--muted); }
+/* "Your dates": the From and To fields right under the toggle (12 Nov) */
+.dates-inline { margin-top: 8px; }
+/* the area dropdown replaces the five buttons under 600px (AreaPicker.jsx) */
+.area-modes-select { display: none; }
 .define p { font-size: var(--font-size-small); margin: 4px 0 0; max-width: 70ch; }
 
 /* cards: one per section of the story */
@@ -156,6 +173,13 @@ select, input {
 .seg button { background: var(--surface); border: 0; padding: 6px 12px; cursor: pointer; color: var(--muted); }
 .seg button + button { border-left: 1px solid var(--rule); }
 .seg button.on { background: var(--mist); color: var(--ink); font-weight: 650; }
+/* a three-way toggle that must not wrap: on narrow screens it becomes three equal columns (12 Nov) */
+@media (max-width: 600px) {
+  .seg.grid3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); width: 100%; }
+  .seg.grid3 button { white-space: normal; line-height: 1.2; padding: 6px 6px; font-size: 13px; }
+  .area-modes { display: none; }
+  .area-modes-select { display: inline-flex; }
+}
 .link { background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
 .lede { font-size: 16px; max-width: 62ch; margin: 4px 0 0; }
@@ -245,19 +269,26 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
   .brand { padding-bottom: 6px; gap: 4px 12px; }
   .brand p { font-size: 13px; }
   .theme-pick { font-size: 12px; }
-  .theme-pick select { min-height: 36px; }
-  /* all four tabs stay visible: they wrap onto a second row instead of scrolling out of sight */
-  nav { flex-wrap: wrap; gap: 0 2px; }
-  .tab { white-space: nowrap; min-height: 44px; padding: 10px 10px 8px; }
+  /* the four tabs stay on one row and scroll sideways (12 Nov); before, the last one dropped onto its own line */
+  nav { flex-wrap: nowrap; gap: 0 2px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  nav::-webkit-scrollbar { display: none; }
+  .tab { white-space: nowrap; min-height: 44px; padding: 10px 10px 8px; flex: none; }
   .top { padding: 12px 16px 0; }
-  /* comfortable touch targets */
+  /* touch targets of at least 44px (12 Nov): buttons, links, toggles, checkboxes and the map controls */
   .seg button, .action, select, input:not([type=checkbox]) { min-height: 44px; }
   label { flex-wrap: wrap; max-width: 100%; }
   select { max-width: min(260px, 100%); }
-  .mini { min-height: 36px; min-width: 44px; font-size: 12.5px; }
-  label.check { min-height: 44px; }
-  .legendbox summary { min-height: 32px; display: flex; align-items: center; }
-  .maplibregl-ctrl-group button { width: 40px; height: 40px; }
+  .mini { min-height: 44px; min-width: 44px; font-size: 12.5px; }
+  label.check { min-height: 44px; padding: 4px 0; }
+  label.check input[type=checkbox] { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); }
+  .link { min-height: 44px; display: inline-flex; align-items: center; padding: 0 4px; }
+  .define summary { min-height: 44px; display: flex; align-items: center; }
+  .legendbox summary { min-height: 44px; display: flex; align-items: center; }
+  .theme-pick select { min-height: 44px; }
+  /* (two classes, so these win over MapLibre's own stylesheet, which is loaded after this one) */
+  .mapstage .maplibregl-ctrl-group > button { width: 44px; height: 44px; }
+  .mapstage .maplibregl-ctrl-attrib-button { width: 44px; height: 44px; background-repeat: no-repeat; background-position: center; }
+  .legendbox summary { min-width: 44px; }
   /* the result first: area, period and the comparison above the map */
   .mobile-summary { display: block; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--rule); }
   .mobile-summary h2 { margin: 0; font-size: 22px; line-height: 1.15; font-weight: var(--heading-weight); font-stretch: var(--heading-stretch); }
@@ -266,7 +297,7 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
   .mobile-summary .small { margin: 4px 0 0; }
   /* map settings: closed by default behind one button, opened below the map, so the map stays clear */
   .maptools-toggle { display: inline-flex; position: absolute; top: 10px; left: 10px; z-index: 2; align-items: center; gap: 6px;
-    max-width: calc(100% - 70px); min-height: 40px; padding: 6px 10px; font: inherit; font-size: 13px; color: var(--ink);
+    max-width: calc(100% - 70px); min-height: 44px; padding: 6px 10px; font: inherit; font-size: 13px; color: var(--ink);
     background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12); cursor: pointer; }
   .maptools-toggle span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .maptools { position: static; max-width: none; border-radius: 0; border-width: 1px 0 0; box-shadow: none; padding: 10px 16px; gap: 10px 12px; }
@@ -277,7 +308,7 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
   .mapside { border-right: 0; border-bottom: 1px solid var(--rule); min-height: 380px; }
   .mapstage { min-height: 0; }
   .map { min-height: max(320px, 52vh); flex: none; }
-  .legendbox { max-width: calc(100% - 20px); bottom: 34px; }
+  .legendbox { max-width: calc(100% - 20px); bottom: 54px; }
   .mapstage .maplibregl-ctrl-attrib.maplibregl-compact-show { max-width: calc(100% - 120px); font-size: 11px; }
   .cellpanel { top: auto; bottom: 10px; max-height: 70%; }
   .mapbar { padding: 8px 16px; gap: 6px 14px; }

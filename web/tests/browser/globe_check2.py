@@ -63,11 +63,13 @@ with sync_playwright() as p:
     pg.wait_for_timeout(1200)
     res["keyboard_moved"] = pg.evaluate("() => window.__shiftMap.getCenter().lng") != c0
 
-    # legend can be closed and reopened
+    # legend can be toggled both ways (it may start open or closed, depending on the variant since 12 Nov)
+    start = pg.evaluate("() => document.querySelector('.legendbox').open")
     pg.locator(".legendbox summary").click(); pg.wait_for_timeout(200)
-    res["legend_closed"] = pg.evaluate("() => !document.querySelector('.legendbox').open")
+    res["legend_closed"] = pg.evaluate("() => document.querySelector('.legendbox').open") != start
     pg.locator(".legendbox summary").click(); pg.wait_for_timeout(200)
-    res["legend_reopened"] = pg.evaluate("() => document.querySelector('.legendbox').open")
+    res["legend_reopened"] = pg.evaluate("() => document.querySelector('.legendbox').open") == start
+    res["legend_starts_open"] = start
 
     # downloads still produce the daily CSV for the drawn box
     with pg.expect_download(timeout=30000) as d:

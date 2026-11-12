@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import T from '../content/text.js';
 import { saveCanvasPNG, saveSVG, saveSVGasPNG } from '../lib/downloads.js';
 
-export default function ChartCard({ title, file, imageTitle, theme, legend, children, note }) {
+// `note` stays visible under the chart; `about` is a longer method note folded behind "About this data" (12 Nov).
+export default function ChartCard({ title, file, imageTitle, theme, legend, children, note, about }) {
   const ref = useRef(null);
   const target = () => ref.current?.querySelector('[data-export]');
   const png = () => {
@@ -31,6 +32,7 @@ export default function ChartCard({ title, file, imageTitle, theme, legend, chil
       </div>
       {children}
       {note && <p className="small">{note}</p>}
+      {about && <details className="define"><summary>{T.aboutData}</summary><p>{about}</p></details>}
     </section>
   );
 }
