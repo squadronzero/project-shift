@@ -14,7 +14,7 @@ export default function Trend({ monthly, range, variable, theme }) {
     return () => ro.disconnect();
   }, []);
   const rows = monthly.rows;
-  const h = 200, l = 54, r = 10, t = 12, b = 24;
+  const h = 206, l = 54, r = 10, t = 18, b = 24;
   const lo = (row) => (row.modisEra && range?.[row.month] != null ? row.value / (1 + range[row.month] / 100) : row.value);
   const hi = (row) => (row.modisEra && range?.[row.month] != null ? row.value * (1 + range[row.month] / 100) : row.value);
   const max = Math.max(1, ...rows.map(hi));
@@ -42,6 +42,7 @@ export default function Trend({ monthly, range, variable, theme }) {
         {ticks.map((v) => <g key={v}><line x1={l} x2={width - r} y1={y(v)} y2={y(v)} className="grid" />
           <text x={l - 6} y={y(v) + 4} className="axis" textAnchor="end">{compact(v)}</text></g>)}
         {yearsShown.map(([row, i]) => <text key={row.year} x={x(i)} y={h - 6} className="axis" textAnchor="middle">{row.year}</text>)}
+        <text x={l + 2} y={t - 3} className="axis">{T.unitsLong[variable]}</text>
         {band && <path d={band} fill={theme.band} />}
         <path d={line} fill="none" stroke={theme.line} strokeWidth="1.6" strokeLinejoin="round" />
         {si > 0 && <g><line x1={x(si)} x2={x(si)} y1={t} y2={h - b} className="switch" />

@@ -1,7 +1,7 @@
 // The Explore page: map on one side, the story of the chosen area on the other.
 // Layout and order of the sections can be changed freely; the numbers come from lib/.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import T, { MONTHS_LONG } from '../content/text.js';
+import T, { MONTHS_LONG, fmtDate } from '../content/text.js';
 import PLACES from '../content/places.js';
 import MapView from '../components/MapView.jsx';
 import MapBoundary from '../components/MapBoundary.jsx';
@@ -40,11 +40,13 @@ export default function Explore({ meta, theme, params }) {
   const [notFire, setNotFire] = useState(null);
   const [showNotFire, setShowNotFire] = useState(false);
   const [area, setArea] = useState(() => areaFromSpec(params.area, PLACES) || presetArea(PLACES[0]));
+  // an area in the link that does not exist falls back to the first preset, and says so (12 Nov)
+  const badArea = !!(params.area && !areaFromSpec(params.area, PLACES));
   const [drawing, setDrawing] = useState(false);
   const [variable, setVariable] = useState(params.v === 'frp' ? 'frp' : 'cells');
   const [series, setSeries] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(() => (badArea ? T.area.notFound(params.area, PLACES[0].name) : null));
   const [unc, setUnc] = useState(null);
   const [harm, setHarm] = useState(null);
   const [cloud, setCloud] = useState(null);
@@ -273,8 +275,11 @@ export default function Explore({ meta, theme, params }) {
           <summary>{T.map.legendToggle}</summary>
           {layerMode === 'recent'
             ? <RecentLegend theme={theme} zoomedIn={!!(rView && rView.zoom >= RECENT_POINTS_FROM)} status={rStatus} />
-            : <MapLegend theme={theme} variable={variable} month={month} showGaps={showGaps} imageryLabel={img?.label} />}
+            : <MapLegend theme={theme} variable={variable} month={month} showGaps={showGaps} imageryLabel={img?.label} compact />}
         </details>
+        {/* the map is an empty box until its first layer arrives: say so in the middle of it (12 Nov) */}
+        {(layerMode === 'record' ? !fires : (rStatus === undefined || (rStatus && !rCells && !rUpdating))) &&
+          <p className="maploading" role="status">{layerMode === 'record' ? T.map.loading : T.recent.loadingLayer}</p>}
         </>}
         </div>
         {mapOk && <>
@@ -296,7 +301,7 @@ export default function Explore({ meta, theme, params }) {
           </label>
           {basemap === 'daily' && <label>{T.map.imageryDay}
             <select value={Math.min(dayOfMonth, days_in_month(month))} onChange={(e) => setDayOfMonth(+e.target.value)}>
-              {Array.from({ length: days_in_month(month) }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{month}-{String(d).padStart(2, '0')}</option>)}
+              {Array.from({ length: days_in_month(month) }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{fmtDate(`${month}-${String(d).padStart(2, '0')}`)}</option>)}
             </select>
           </label>}
           <button type="button" className="action ghost" onClick={() => setFocusKey((k) => k + 1)}>{T.map.focus}</button>
@@ -312,10 +317,10 @@ export default function Explore({ meta, theme, params }) {
               {Object.entries(T.recent.periods).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
             </select>
           </label>
-          {rStatus && rCells && <span className="small">{T.recent.fetched(rStatus.fetched_utc.replace('T', ' ').replace('Z', ' UTC'),
-            rStatus.window.from, minuteToIso(rCells.from, rCells.latest))}</span>}
-          {rFresh && (rFresh.stale || rFresh.feedLagHours || rFresh.incomplete) && <div className="recentnotice" role="status">
-            {rFresh.stale && <p>{T.recent.stale(rFresh.retrieved)}{rFresh.attempted ? ` ${T.recent.fallback(rFresh.attempted)}` : ''}</p>}
+          {rStatus && rCells && <span className="small">{T.recent.fetched(rStatus.fetched_utc,
+            rStatus.window.from, minuteToIso(rCells.from, rCells.latest), rFresh?.stale)}</span>}
+          {rFresh && (rFresh.stale || rFresh.feedLagHours || rFresh.incomplete) && <div className={rFresh.stale ? 'recentnotice warn' : 'recentnotice'} role="status">
+            {rFresh.stale && <p>{T.recent.stale(rFresh.retrieved, Math.max(0, Math.round((nowTick - Date.parse(rStatus.fetched_utc)) / 3.6e6)))}{rFresh.attempted ? ` ${T.recent.fallback(rFresh.attempted)}` : ''}</p>}
             {rFresh.feedLagHours && <p>{T.recent.feedLag(rFresh.feedLagHours)}</p>}
             {rFresh.incomplete && <p>{T.recent.missing(rFresh.missing.map(T.recent.missingItem).join(', ') || 'an unknown part')}</p>}
           </div>}
@@ -325,7 +330,7 @@ export default function Explore({ meta, theme, params }) {
         </div> : <div className="mapbar">
           <label>{T.map.month}
             <select value={month} onChange={(e) => pickMonth(e.target.value)}>
-              {months.slice().reverse().map((m) => <option key={m} value={m}>{m}</option>)}
+              {months.slice().reverse().map((m) => <option key={m} value={m}>{fmtDate(m)}</option>)}
             </select>
           </label>
           {mapOk && <>
@@ -348,9 +353,12 @@ export default function Explore({ meta, theme, params }) {
           </span>}
           </>}
         </div>}
+        {/* what the map shows (12 Nov): these sentences used to sit inside the legend and covered the map */}
+        {mapOk && layerMode === 'record' && <p className="mapnotes small">{T.map.legendUnit[variable]}. {T.map.legendScale} {T.map.legendSupport}
+          {showGaps ? ` ${T.map.legendGaps}` : ''}{img ? ` ${img.label}. ${T.map.imageryNote}` : ''}</p>}
       </section>
 
-      <section className="story" aria-live="polite">
+      <section className="story" id="results" tabIndex={-1} aria-live="polite">
         <div className="controls">
           <AreaPicker area={area} setArea={pickArea} drawing={drawing} setDrawing={setDrawing} setError={setError} />
           <div className="seg" role="group" aria-label="Measure">
@@ -373,7 +381,8 @@ export default function Explore({ meta, theme, params }) {
             <p className="lede">{T.lede(totals.unusual, totals.critical, mon.baseline[0], mon.baseline[1], totals.nodataDays)}</p>
 
             <ChartCard title={T.headings.now} file={file('compare')} theme={theme} imageTitle={`${area.name}: ${mLabel.toLowerCase()}, same dates every year`}>
-              <Compare meta={meta} cmp={cmp} variable={variable} theme={theme} mode={cmpMode} setMode={setCmpMode} monthShare={monthShare} />
+              <Compare meta={meta} cmp={cmp} variable={variable} theme={theme} mode={cmpMode} setMode={setCmpMode} monthShare={monthShare}
+                dates={dates} setDates={setDates} />
               <WeatherContext meta={meta} cmp={cmp} area={area} />
             </ChartCard>
 
@@ -388,11 +397,11 @@ export default function Explore({ meta, theme, params }) {
 
             <ChartCard title={T.headings.months} file={file('months')} theme={theme} imageTitle={`${area.name}: each month against its normal (${mLabel.toLowerCase()})`}
               note={T.monthGrid.classMeaning}>
-              <MonthGrid monthly={mon} variable={variable} theme={theme} falseAlarm={falseAlarm} />
+              <MonthGrid monthly={mon} variable={variable} theme={theme} falseAlarm={falseAlarm} recordEnd={longDate(dateOf(meta, lastK))} />
             </ChartCard>
 
             <ChartCard title={T.headings.trend} file={file('trend')} theme={theme} imageTitle={`${area.name}: monthly ${mLabel.toLowerCase()}`}
-              note={T.explainScale}>
+              note={T.explainShort} about={T.explainScale}>
               <Trend monthly={mon} range={range} variable={variable} theme={theme} />
             </ChartCard>
 

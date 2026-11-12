@@ -80,8 +80,8 @@ with sync_playwright() as p:
     # the CSV buttons
     d = pg.locator(".downloads")
     d.scroll_into_view_if_needed()
-    for i in range(d.locator(".buttons button.action:not(.ghost)").count()):
-        btn = d.locator(".buttons button.action:not(.ghost)").nth(i)
+    for i in range(d.locator(".buttons.csv button.action").count()):
+        btn = d.locator(".buttons.csv button.action").nth(i)
         grab(pg, lambda: btn.click(), btn.inner_text().strip(), timeout=30000)
     # print, share, FIRMS link
     pg.locator(".downloads button", has_text="Print").click(); pg.wait_for_timeout(300)

@@ -27,6 +27,9 @@ export default function App() {
 
   return (
     <div className="app">
+      {/* keyboard users: one stop before the map and its controls (12 Nov). A button, not a link, because the page
+          address carries the view and the shared area, and a #results link would overwrite it. */}
+      <button type="button" className="skip" onClick={() => { const el = document.getElementById('results') || document.querySelector('main'); el?.focus(); el?.scrollIntoView(); }}>{T.skip}</button>
       <header className="top">
         <div className="brand">
           <h1>{T.brand}</h1>
@@ -34,7 +37,7 @@ export default function App() {
         </div>
         <div className="top-right">
           {meta && <span className="badge">{T.dataTo(longDate(dateOf(meta, lastDataDay(meta))))}</span>}
-          {recent?.latest_detection_utc && <span className="badge">{T.recentTo(recent.latest_detection_utc.replace('T', ' ').replace('Z', ' UTC'),
+          {recent?.latest_detection_utc && <span className={recentFreshness(recent)?.stale ? 'badge warn' : 'badge'}>{T.recentTo(recent.latest_detection_utc,
             recentFreshness(recent)?.stale)}</span>}
           <label className="theme-pick">{T.theme.label}
             <select value={mode} onChange={(e) => setMode(e.target.value)}>

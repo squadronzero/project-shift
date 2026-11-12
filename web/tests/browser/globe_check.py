@@ -96,6 +96,7 @@ with sync_playwright() as p:
     pg.select_option(".maptools select >> nth=1", "satellite")
     pg.wait_for_timeout(4000)
     res["imagery_note"] = pg.locator(".mapnote").all_inner_texts()
+    pg.evaluate("() => { const d = document.querySelector('.legendbox'); if (d && !d.open) d.open = true; }")  # the legend may start closed (12 Nov)
     res["legend"] = pg.inner_text(".maplegend")
     pg.screenshot(path=f"{out}/6_satellite_offline.png")
 

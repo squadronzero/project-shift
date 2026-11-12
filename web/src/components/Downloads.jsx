@@ -37,10 +37,10 @@ export default function Downloads({ meta, area, series, mon, range, unc, variabl
           onChange={(e) => e.target.value && setDates({ ...dates, to: e.target.value })} /></label>
         <button className="link" onClick={() => setDates({ from: minIso, to: maxIso })}>{T.downloads.whole}</button>
       </div>
-      <div className="buttons">
+      <div className="buttons csv">
         <button className="action" onClick={() => save(dailyCSV(meta, series, from, to, range, eraDays), `${name}_daily.csv`, 'text/csv')}>{T.downloads.daily}</button>
-        <button className="action" onClick={() => save(monthlyCSV(mon, variable, range), `shift_${slug(area.name)}_monthly_${variable === 'frp' ? 'fire_power' : 'hotspots'}.csv`, 'text/csv')}>{T.downloads.monthly}</button>
-        <button className="action" disabled={busy} onClick={cells}>{busy ? T.downloads.cellsBusy : T.downloads.cells}</button>
+        <button className="action ghost" onClick={() => save(monthlyCSV(mon, variable, range), `shift_${slug(area.name)}_monthly_${variable === 'frp' ? 'fire_power' : 'hotspots'}.csv`, 'text/csv')}>{T.downloads.monthly}</button>
+        <button className="action ghost" disabled={busy} onClick={cells}>{busy ? T.downloads.cellsBusy : T.downloads.cells}</button>
       </div>
       <div className="buttons">
         <a className="action ghost" href={firmsLink(area, dates.from, dates.to)} target="_blank" rel="noreferrer">{T.downloads.firms}</a>
@@ -48,7 +48,7 @@ export default function Downloads({ meta, area, series, mon, range, unc, variabl
         <button className="action ghost" onClick={() => window.print()}>{T.downloads.print}</button>
       </div>
       {note && <p className="notice">{note}</p>}
-      <p className="small">{T.downloads.note}</p>
+      <details className="define"><summary>{T.aboutData}</summary><p>{T.downloads.note}</p></details>
     </div>
   );
 }
