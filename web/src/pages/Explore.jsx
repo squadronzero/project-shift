@@ -75,7 +75,7 @@ export default function Explore({ meta, theme, params }) {
   const [speed, setSpeed] = useState(1000);
   const [mapNote, setMapNote] = useState(null);
   const [mapOk, setMapOk] = useState(true);
-  // variant A (12 Nov): the legend starts closed on every screen size, behind the same "Legend" button phones use
+  // variant A (12 Nov): the legend starts closed on every screen size, behind the same "Map key" button phones use
   const [legendOpen, setLegendOpen] = useState(false);
   // ---- recent detections (D38): a separate layer of raw FIRMS NRT points, never mixed into the record
   const [layerMode, setLayerMode] = useState(params.l === 'recent' ? 'recent' : 'record');

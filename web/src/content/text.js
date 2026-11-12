@@ -162,7 +162,7 @@ const T = {
     keys: 'Keys: arrows move, + and − zoom, Shift with arrows tilts and turns (3D).',
 
     // ---- legend
-    legendToggle: 'Legend',
+    legendToggle: 'Map key',
     legendTitle: (v, ym) => `${v === 'frp' ? 'Fire power' : 'Hotspots'}, ${fmtDate(ym)}, per 0.25° cell (about 25 km)`,
     legendUnit: { frp: 'MW summed over the days of the month (an index, not energy)', cells: 'hotspot cell-days in the month' },
     legendScale: 'S-NPP (VIIRS) scale throughout. Before 20 Jan 2012: MODIS put on that scale (an estimate).',
