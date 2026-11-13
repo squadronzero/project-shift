@@ -71,11 +71,32 @@ const T = {
     // the page opens on the world map with no area chosen (13 Nov): what the story side shows until one is picked
     start: {
       heading: 'Choose an area',
-      body: 'Pick a preset, a country, coordinates or a point, or draw a box on the map. SHIFT then shows how the latest '
+      body: 'Search for a country, a preset or coordinates, or draw a shape on the map with the pen. SHIFT then shows how the latest '
         + 'weeks compare with the same dates in earlier years, the usual fire season, the daily calendar and the monthly trend.',
       example: (name, monthName, year) => `Example: ${name}, ${monthName} ${year}`,
       mobile: 'Choose an area below the map to see its fire history.',
     },
+  },
+
+  // ---------------------------------------------------------------- the search bar (UI lab, 14 Nov)
+  search: {
+    label: 'Search for a country, a preset or coordinates',
+    placeholder: 'Search a country, preset or coordinates…',
+    suggestions: 'Suggestions',
+    help: 'Coordinates in decimal degrees: "23.81, 90.41" (latitude, longitude), "23.81, 90.41, 100" (with a radius in km) or "88, 20.5, 92.7, 26.7" (west, south, east, north).',
+    kinds: { preset: 'Preset', point: 'Point', box: 'Box' },
+    pointItem: (lat, lon, km) => `${km} km around ${lat}, ${lon}`,
+    boxItem: (w, s, e, n) => `Box: west ${w}, south ${s}, east ${e}, north ${n}`,
+    none: (q) => `No country or preset matches "${q}". Try another spelling, coordinates, or "Choose instead".`,
+    draw: 'Draw a shape on the map',
+    drawStop: 'Stop drawing',
+    drawTools: 'Drawing a shape',
+    drawHint: (n) => (n === 0 ? 'Click or tap the map to place the first corner.' : `${n} corner${n === 1 ? '' : 's'}. Add at least ${3 - n} more.`),
+    drawReady: (n) => `${n} corners. Click the first corner, double-click or press Finish.`,
+    finish: 'Finish', undo: 'Undo corner', cancel: 'Cancel',
+    chooseInstead: 'Choose instead',
+    closeForm: 'Close',
+    shapeNote: 'The shape is summed on the 1° grid: a cell counts when its centre is inside, like a country.',
   },
 
   // ---------------------------------------------------------------- recent detections (D38)

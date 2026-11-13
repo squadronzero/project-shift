@@ -4,8 +4,11 @@ import T from '../content/text.js';
 import PLACES from '../content/places.js';
 import { COUNTRIES, boxArea, checkBox, countryArea, pointArea, presetArea } from '../lib/area.js';
 
-export default function AreaPicker({ area, setArea, drawing, setDrawing, setError }) {
-  const [mode, setMode] = useState(area?.kind === 'preset' ? 'preset' : area?.kind || 'preset');
+// `only` (UI lab, 14 Nov): show just one way (preset, country, box or point) without the row of tabs. The search
+// bar's "Choose instead" menu uses it, so the structured forms are the same code as before.
+export default function AreaPicker({ area, setArea, drawing, setDrawing, setError, only = null }) {
+  const [ownMode, setMode] = useState(area?.kind === 'preset' ? 'preset' : area?.kind || 'preset');
+  const mode = only || ownMode;
   const [box, setBox] = useState({ w: '', s: '', e: '', n: '' });
   const [pt, setPt] = useState({ lat: '', lon: '', km: '50' });
 
@@ -40,6 +43,7 @@ export default function AreaPicker({ area, setArea, drawing, setDrawing, setErro
   return (
     <div className="area-picker">
       {/* five ways to choose: buttons on wide screens, one dropdown under 600px where the buttons wrapped badly (12 Nov) */}
+      {!only && <>
       <div className="seg area-modes" role="tablist" aria-label={T.area.heading}>
         {Object.entries(T.area.modes).map(([id, label]) => (
           <button key={id} role="tab" aria-selected={mode === id} className={mode === id ? 'on' : ''}
@@ -51,6 +55,7 @@ export default function AreaPicker({ area, setArea, drawing, setDrawing, setErro
           {Object.entries(T.area.modes).map(([id, label]) => <option key={id} value={id}>{label}</option>)}
         </select>
       </label>
+      </>}
       <div className="area-form">
         {mode === 'preset' && (
           <label>{T.area.preset}

@@ -336,3 +336,48 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
 .start-empty { margin-top: 18px; }
 .start-empty .action { margin-top: 6px; }
 .maptools .action:disabled { cursor: not-allowed; }
+
+/* ---------------------------------------------------------------- search bar (UI lab, 14 Nov) */
+.searcharea { display: flex; flex-direction: column; gap: 6px; }
+.searchrow { display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+.searchbox { position: relative; flex: 1 1 260px; min-width: 0; }
+.searchbox input { width: 100%; max-width: none; box-sizing: border-box; min-height: 42px; padding: 8px 12px 8px 38px;
+  font: inherit; font-size: 15.5px; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--rule); border-radius: 999px; }
+.searchbox input:focus { outline: 2px solid var(--focus); outline-offset: 1px; border-color: var(--focus); }
+.searchbox input::-webkit-search-cancel-button { display: none; }
+.searchicon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: var(--muted); display: flex; pointer-events: none; }
+.suggest { position: absolute; z-index: 30; left: 0; right: 0; top: calc(100% + 4px); margin: 0; padding: 4px 0; list-style: none;
+  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14); max-height: 320px; overflow-y: auto; }
+.suggest li { display: flex; justify-content: space-between; gap: 12px; padding: 9px 14px; cursor: pointer; min-height: 24px; }
+.suggest li.on { background: var(--mist); }
+.suggest-kind { color: var(--muted); font-size: var(--font-size-small); white-space: nowrap; }
+.suggest .suggest-empty, .suggest .suggest-error { cursor: default; color: var(--muted); font-size: var(--font-size-small); }
+.suggest .suggest-error { color: var(--accent); }
+.iconbtn { min-width: 42px; min-height: 42px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--rule); border-radius: 999px; background: var(--surface); color: var(--ink); cursor: pointer; }
+.iconbtn:hover { border-color: var(--muted); }
+.iconbtn.on { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.choosemenu { position: relative; display: flex; }
+.choosemenu > .action { border-radius: 999px; min-height: 42px; white-space: nowrap; }
+.popmenu { position: absolute; z-index: 30; right: 0; top: calc(100% + 4px); min-width: 170px; display: flex; flex-direction: column;
+  padding: 4px; background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14); }
+.popmenu button { text-align: left; padding: 9px 12px; min-height: 40px; border: 0; background: none; color: var(--ink); font: inherit; border-radius: 4px; cursor: pointer; }
+.popmenu button:hover, .popmenu button:focus-visible { background: var(--mist); }
+.searchhelp { margin: 0; }
+.drawbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 10px; border: 1px dashed var(--accent); border-radius: var(--radius); }
+.drawbar .small { flex: 1 1 200px; }
+.manualform { display: flex; flex-direction: column; gap: 6px; padding: 10px; border: 1px solid var(--rule); border-radius: var(--radius); }
+.linkbtn { align-self: flex-start; border: 0; background: none; padding: 4px 0; color: var(--focus); text-decoration: underline; cursor: pointer; font: inherit; }
+@media (max-width: 600px) {
+  .searchbox { flex-basis: 100%; }
+  .searchbox input { min-height: 44px; }
+  .iconbtn, .choosemenu > .action { min-height: 44px; min-width: 44px; }
+  .choosemenu { flex: 1; } .choosemenu > .action { flex: 1; }
+  .suggest li { min-height: 28px; padding: 11px 14px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .suggest, .popmenu { animation: shift-pop 120ms ease-out; }
+  @keyframes shift-pop { from { opacity: 0; transform: translateY(-3px); } to { opacity: 1; transform: none; } }
+}

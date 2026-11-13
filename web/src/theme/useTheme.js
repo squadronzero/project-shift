@@ -1,8 +1,8 @@
 // Reads the colours in tokens.css so the map (MapLibre) and the canvas/SVG charts draw with
 // exactly the same values as the rest of the page. Edit colours in tokens.css, not here.
 import { useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 
-const KEY = 'shift-theme';
 
 function read() {
   const cs = getComputedStyle(document.documentElement);
@@ -28,27 +28,22 @@ function read() {
   };
 }
 
-function stored() {
-  try { return localStorage.getItem(KEY) || 'system'; } catch { return 'system'; }
-}
-
-// mode: 'system' | 'light' | 'dark'. Returns [theme, mode, setMode].
+// Dark only (Squadron Zero, 14 Nov). The light colours stay in tokens.css (:root) and are used for printing
+// only: dark text colours on white paper would be unreadable, so the page switches to light just before the
+// browser prints and back afterwards (flushSync redraws the charts before the print is taken).
+// Returns [theme, mode, setMode] as before so callers do not change.
 export default function useTheme() {
-  const q = window.matchMedia('(prefers-color-scheme: dark)');
-  const [mode, setMode] = useState(stored);
-  const [sys, setSys] = useState(q.matches ? 'dark' : 'light');
-  const resolved = mode === 'system' ? sys : mode;
-  useEffect(() => {
-    const f = (e) => setSys(e.matches ? 'dark' : 'light');
-    q.addEventListener('change', f);
-    return () => q.removeEventListener('change', f);
-  }, []);  // eslint-disable-line react-hooks/exhaustive-deps
-  // set the attribute before reading the colours, so the read sees the right theme
+  const [printing, setPrinting] = useState(false);
+  const resolved = printing ? 'light' : 'dark';
   document.documentElement.dataset.theme = resolved;
   const [theme, setTheme] = useState(read);
   useEffect(() => {
-    setTheme(read());
-    try { localStorage.setItem(KEY, mode); } catch { /* private mode: not remembered */ }
-  }, [resolved, mode]);
-  return [theme.name === resolved ? theme : read(), mode, setMode];
+    const before = () => { document.documentElement.dataset.theme = 'light'; flushSync(() => { setPrinting(true); setTheme(read()); }); };
+    const after = () => { document.documentElement.dataset.theme = 'dark'; setPrinting(false); setTheme(read()); };
+    window.addEventListener('beforeprint', before);
+    window.addEventListener('afterprint', after);
+    return () => { window.removeEventListener('beforeprint', before); window.removeEventListener('afterprint', after); };
+  }, []);
+  useEffect(() => { setTheme(read()); }, [resolved]);
+  return [theme.name === resolved ? theme : read(), resolved, () => {}];
 }
