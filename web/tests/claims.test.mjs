@@ -3,11 +3,13 @@
 // element, overclaiming phrases must not come back, and the report fields the page reads must stay the same.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
 const validation = read('../src/pages/Validation.jsx');
-const method = read('../src/pages/Method.jsx');
+// The Method page is split over Method.jsx and src/pages/method/*
+const method = [ '../src/pages/Method.jsx', ...readdirSync(new URL('../src/pages/method/', import.meta.url)).filter((f) => /\.jsx?$/.test(f)).sort().map((f) => `../src/pages/method/${f}`) ]
+  .map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
 const switch2012 = read('../src/pages/Switch2012.jsx');
 const text = read('../src/content/text.js');
 const compare = read('../src/components/Compare.jsx');
@@ -46,7 +48,7 @@ test('the page still reads the same report fields', () => {
 });
 
 test('the Method page states what the 95% range does not cover', () => {
-  const li = method.match(/<li>Before 2012 every value carries a calibrated 95% range[\s\S]*?<\/li>/);
+  const li = method.match(/<li(?: key="[^"]*")?>Before 2012 every value carries a calibrated 95% range[\s\S]*?<\/li>/);
   assert.ok(li, 'range bullet present');
   const flat = li[0].replace(/\s+/g, ' ');
   for (const w of ['cloud', 'before 2012', 'not fully independent', 'built a little differently', 'not as a guaranteed 95% bound']) {

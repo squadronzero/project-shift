@@ -29,12 +29,15 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [exploreKey, setExploreKey] = useState(0);
   const [brandNote, setBrandNote] = useState(null);
+  // the Method page's "Open in Explore" buttons: open Explore with an area (and dates), no reload
+  const [openParams, setOpenParams] = useState(null);
+  const openExplore = (p) => { setOpenParams(p || {}); setExploreKey((k) => k + 1); setCurrent('explore'); window.scrollTo(0, 0); };
   const home = async () => {
     if (busy) return;
     setBusy(true); setBrandNote(null);
     const reloaded = await checkAndReload({ meta: meta?.generated_utc || '', recent: snapshotId(recent) });
     if (!reloaded) {                       // offline: back to the Explore start, no reload, say so plainly
-      setBusy(false); setCurrent('explore'); setExploreKey((k) => k + 1); history.replaceState(null, '', '#explore');
+      setBusy(false); setOpenParams({}); setCurrent('explore'); setExploreKey((k) => k + 1); history.replaceState(null, '', '#explore');
       setBrandNote(T.brandOffline);
     }
   };
@@ -71,10 +74,10 @@ export default function App() {
 
       {brandNote && <p className="brandnote" role="status">{brandNote} <button type="button" className="linkbtn" onClick={() => setBrandNote(null)}>OK</button></p>}
       {error && <main className="page"><p className="notice" role="alert">{error}</p></main>}
-      {current === 'explore' && meta && <Explore key={exploreKey} meta={meta} theme={theme} params={view === 'explore' && !exploreKey ? params : {}} />}
+      {current === 'explore' && meta && <Explore key={exploreKey} meta={meta} theme={theme} params={openParams || (view === 'explore' && !exploreKey ? params : {})} />}
       {current === 'switch' && <Switch2012 theme={theme} />}
       {current === 'validation' && <Validation />}
-      {current === 'method' && <Method meta={meta} />}
+      {current === 'method' && <Method meta={meta} onOpen={openExplore} />}
     </div>
   );
 }

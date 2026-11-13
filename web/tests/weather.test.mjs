@@ -8,7 +8,9 @@ import { compareWeather, windowValue, MIN_YEARS } from '../src/weather/weather.j
 const read = (p) => readFileSync(new URL(p, import.meta.url));
 const text = read('../src/content/text.js').toString();
 const panel = read('../src/weather/WeatherContext.jsx').toString();
-const method = read('../src/pages/Method.jsx').toString();
+// The Method page is split over Method.jsx and src/pages/method/*
+const method = [ '../src/pages/Method.jsx', ...readdirSync(new URL('../src/pages/method/', import.meta.url)).filter((f) => /\.jsx?$/.test(f)).sort().map((f) => `../src/pages/method/${f}`) ]
+  .map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
 
 // a fake area: one value per day from 2003-01-01, the same every year except 2020, which is dry, hot and windy
 function fakeArea() {
