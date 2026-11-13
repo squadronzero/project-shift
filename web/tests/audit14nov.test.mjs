@@ -1,10 +1,12 @@
 // Fixes from the judging audit, 14 Nov 2026: Method wording, provisional 2026, map month, date-line links.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
-const method = read('../src/pages/Method.jsx');
+// The Method page is split over Method.jsx and src/pages/method/*
+const method = [ '../src/pages/Method.jsx', ...readdirSync(new URL('../src/pages/method/', import.meta.url)).filter((f) => /\.jsx?$/.test(f)).sort().map((f) => `../src/pages/method/${f}`) ]
+  .map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
 const explore = read('../src/pages/Explore.jsx');
 
 test('Method: no claim that a finer sensor cannot inflate the count', () => {
