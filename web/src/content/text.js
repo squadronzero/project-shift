@@ -138,6 +138,7 @@ const T = {
   // ---------------------------------------------------------------- the map
   map: {
     month: 'Map month (whole month)',
+    monthTo: (end) => `Map month (to ${end}, the newest data)`,
     notFire: 'Show heat that isn\'t fire',
     kinds: { industry: 'gas flares, industry', volcano: 'volcanoes', offshore: 'offshore' },
     fireTip: (frp, cells) => `<b>${frp} MW</b> fire power<br>${cells} hotspots (S-NPP scale)`,
@@ -262,7 +263,7 @@ const T = {
     sameDates: 'against the same dates in past years',
     rankOf: (n) => `of ${n} years (1 = most fire)`,
     periods: (a, b, map) => `Compared: ${a} to ${b}. The map shows ${map}.`,
-    mapMonth: (name, y) => `${name} ${y} (the whole month)`,
+    mapMonth: (name, y, end) => (end ? `${name} ${y} (to ${end})` : `${name} ${y} (the whole month)`),
     mapRecent: 'recent detections (raw FIRMS, not harmonised)',
   },
 

@@ -14,7 +14,7 @@ export default function Method({ meta }) {
         MODIS years on the VIIRS scale.</p>
       <h3>The steps</h3>
       <ol>
-        <li>Count hotspots (burning 0.05° cells) instead of detections, so a finer sensor cannot inflate the count.</li>
+        <li>Count hotspots (burning 0.05° cells) instead of detections, so a finer sensor inflates the count much less (joined raw, hotspots still jump about 2.6 times in 2012, which is why the next steps are needed).</li>
         <li>Remove gas flares, industry, volcanoes and offshore platforms that NASA labelled as non-fire, in every year.</li>
         <li>For each 2.5° area and calendar month, measure the ratio of VIIRS to MODIS fire over 2012 to 2025. Areas with little fire lean on their 10° neighbourhood.</li>
         <li>Use Terra and Aqua together until 2019 and Aqua alone after, when Terra's orbit drifts.</li>
@@ -60,7 +60,8 @@ export default function Method({ meta }) {
         <li>Unusual and Critical months are statistically extreme for that place and month. They are not fire danger ratings or emergency warnings.</li>
         <li>The weather comes from a reanalysis (a weather model guided by observations) on a grid of about 50 to 70 km, not from
           stations at the fires. The newest weeks are near-real-time values that NASA may revise, and are marked provisional.</li>
-        <li>NOAA-21 (VIIRS since 2023) is not used: it was not tested against the others in time (D35).</li>
+        <li>NOAA-21 (VIIRS since 2023) is not used in the harmonised record: it was not tested against the others in time (D35). It appears only in the recent detections layer, labelled as not tested.</li>
+        <li>From July 2026 the Suomi NPP data in the record is NASA's near-real-time version, which has no fire-type label, so only SHIFT's persistent non-fire mask removes non-fire heat. Treat 2026 values from July as provisional until NASA's final science data replaces them.</li>
         <li>From February 2023 Aqua flies past its 13:45 science limit, so it no longer fills Suomi NPP gaps (D29).</li>
       </ul>
       <h3>Data</h3>

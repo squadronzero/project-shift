@@ -21,7 +21,7 @@ import Downloads from '../components/Downloads.jsx';
 import { QUIET_MIN_HOTSPOTS_PER_YEAR, isQuietArea, normalYearHotspots } from '../components/quiet.js';
 import { MAX_TILES, areaSeries, dateOf, iso, json, lastDataDay, monthLayer, tilesOfCells, dayIndex, zoneMonth } from '../lib/data.js';
 import { IMAGERY_FIRST_DAY, cellInfo, days_in_month, imagery } from '../lib/geo.js';
-import { COUNTRIES, areaFromSpec, boxArea, countryArea, pointArea, presetArea } from '../lib/area.js';
+import { COUNTRIES, areaFromSpec, boxArea, checkBox, countryArea, pointArea, presetArea } from '../lib/area.js';
 import { detectionInfo, minuteToIso, recentFreshness, recentOverview, recentPoints, recentStatus, tilesInView } from '../lib/recent.js';
 import { RECENT_POINTS_FROM } from '../components/MapView.jsx';
 import { areaRange, compareWindow, monthly, normalMonth, season, summary } from '../lib/analysis.js';
@@ -32,18 +32,27 @@ import { writeHash } from '../lib/url.js';
 export default function Explore({ meta, theme, params }) {
   const lastK = lastDataDay(meta);
   const lastIso = iso(meta, lastK);
-  // the map opens on the last complete month
-  const [month, setMonth] = useState(() => params.m || (() => {
-    const d = new Date(Date.UTC(+lastIso.slice(0, 4), +lastIso.slice(5, 7) - 2, 1));
-    return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, '0')}`;
-  })());
+  // the map opens on the newest month of the record, the same month the headline compares (14 Nov, judging audit:
+  // the map showed the last complete month, September, next to an October headline). That month runs to the last
+  // data day, and the label says so.
+  const lastMonth = lastIso.slice(0, 7);
+  const [month, setMonth] = useState(() => params.m || lastMonth);
   const [fires, setFires] = useState(null);
   const [notFire, setNotFire] = useState(null);
   const [showNotFire, setShowNotFire] = useState(false);
   // no area in the link: the page opens on the world map with nothing chosen (13 Nov). An area in the link that
   // does not exist also leaves nothing chosen, and says so
-  const [area, setArea] = useState(() => areaFromSpec(params.area, PLACES) || null);
-  const badArea = !!(params.area && !areaFromSpec(params.area, PLACES));
+  // a box in a link gets the same check as typed coordinates (14 Nov, judging audit): a box across the date line
+  // used to be read as an empty strip and showed "No fire was recorded"
+  const linkArea = (spec) => {
+    if (spec?.startsWith('box:')) {
+      const [w, s, e, n] = spec.slice(4).split(',').map(Number);
+      if (checkBox({ w, s, e, n })) return null;
+    }
+    return areaFromSpec(spec, PLACES);
+  };
+  const [area, setArea] = useState(() => linkArea(params.area) || null);
+  const badArea = !!(params.area && !linkArea(params.area));
   // the example is the Bangladesh COUNTRY view (14 Nov, judging audit P1): the preset box is a rectangle with about
   // two-thirds of its October 2026 fire in India and Myanmar, so it must not be quoted as "Bangladesh"
   const exampleCountry = COUNTRIES.find((c) => c.id === 'bangladesh');
@@ -261,7 +270,7 @@ export default function Explore({ meta, theme, params }) {
           </div>
         ) : <p className="small muted">{loading ? T.loading : ''}</p>}
         {cmp?.target && <p className="small">{T.summary.periods(fmtDay(dateOf(meta, cmp.target.from)), fmtDay(dateOf(meta, cmp.target.to)),
-          layerMode === 'recent' ? T.summary.mapRecent : T.summary.mapMonth(MONTHS_LONG[+month.slice(5, 7) - 1], month.slice(0, 4)))}</p>}
+          layerMode === 'recent' ? T.summary.mapRecent : T.summary.mapMonth(MONTHS_LONG[+month.slice(5, 7) - 1], month.slice(0, 4), month === lastMonth ? fmtDate(lastIso) : null))}</p>}
       </section>}
       <section className="mapside">
         <div className="mapstage">
@@ -347,7 +356,7 @@ export default function Explore({ meta, theme, params }) {
           <label className="check"><input type="checkbox" checked={showNotFire} onChange={(e) => setShowNotFire(e.target.checked)} />
             {T.map.notFire}</label>
         </div> : <div className="mapbar">
-          <label>{T.map.month}
+          <label>{month === lastMonth ? T.map.monthTo(fmtDate(lastIso)) : T.map.month}
             <select value={month} onChange={(e) => pickMonth(e.target.value)}>
               {months.slice().reverse().map((m) => <option key={m} value={m}>{fmtDate(m)}</option>)}
             </select>
