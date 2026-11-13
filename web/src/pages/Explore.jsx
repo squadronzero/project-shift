@@ -39,14 +39,16 @@ export default function Explore({ meta, theme, params }) {
   const [fires, setFires] = useState(null);
   const [notFire, setNotFire] = useState(null);
   const [showNotFire, setShowNotFire] = useState(false);
-  const [area, setArea] = useState(() => areaFromSpec(params.area, PLACES) || presetArea(PLACES[0]));
-  // an area in the link that does not exist falls back to the first preset, and says so (12 Nov)
+  // no area in the link: the page opens on the world map with nothing chosen (13 Nov). An area in the link that
+  // does not exist also leaves nothing chosen, and says so
+  const [area, setArea] = useState(() => areaFromSpec(params.area, PLACES) || null);
   const badArea = !!(params.area && !areaFromSpec(params.area, PLACES));
+  const example = PLACES.find((p) => p.id === 'bangladesh') || PLACES[0];
   const [drawing, setDrawing] = useState(false);
   const [variable, setVariable] = useState(params.v === 'frp' ? 'frp' : 'cells');
   const [series, setSeries] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(() => (badArea ? T.area.notFound(params.area, PLACES[0].name) : null));
+  const [error, setError] = useState(() => (badArea ? T.area.notFound(params.area) : null));
   const [unc, setUnc] = useState(null);
   const [harm, setHarm] = useState(null);
   const [cloud, setCloud] = useState(null);
@@ -160,13 +162,14 @@ export default function Explore({ meta, theme, params }) {
 
   // the share link follows every choice
   useEffect(() => {
-    writeHash('explore', { area: area.spec, v: variable, m: month, ...(cmpMode === 'custom' ? { from: dates.from, to: dates.to } : {}),
+    writeHash('explore', { area: area?.spec, v: variable, m: month, ...(cmpMode === 'custom' ? { from: dates.from, to: dates.to } : {}),
       ...(view === '3d' ? { p: '3d' } : {}), ...(basemap !== 'standard' ? { b: basemap === 'satellite' ? 'sat' : 'day' } : {}),
       ...(layerMode === 'recent' ? { l: 'recent', rp: period } : {}) });
   }, [area, variable, month, dates, cmpMode, view, basemap, layerMode, period]);
 
-  const tileCount = useMemo(() => tilesOfCells(area.cells).filter((t) => meta.tiles[t.name]).length, [area, meta]);
+  const tileCount = useMemo(() => (area ? tilesOfCells(area.cells).filter((t) => meta.tiles[t.name]).length : 0), [area, meta]);
   useEffect(() => {
+    if (!area) { setSeries(null); setLoading(false); return undefined; }
     if (tileCount > MAX_TILES) { setSeries(null); setError(T.area.tooBig(tileCount, MAX_TILES)); return undefined; }
     let live = true;
     setLoading(true);
@@ -202,6 +205,9 @@ export default function Explore({ meta, theme, params }) {
   const onBox = (b) => { setError(null); setPlaying(false); setArea(boxArea(b)); };
   const pickArea = (a) => { setError(null); setPlaying(false); setArea(a); };
   const pickMonth = (m) => { setPlaying(false); setMonth(m); };
+  // the start screen's one-tap example: the first tested preset over the latest month of the record
+  const showExample = () => { setCmpMode('month'); pickArea(presetArea(example)); };
+  const exampleLabel = T.area.start.example(example.name, MONTHS_LONG[+lastIso.slice(5, 7) - 1], lastIso.slice(0, 4));
 
   // the picture date follows the map month (clamped to the month and to the last data day)
   const imageryDay = useMemo(() => {
@@ -227,13 +233,17 @@ export default function Explore({ meta, theme, params }) {
   }, [fires, month, view]);
   const falseAlarm = checks?.anomaly_rule?.regions?.plain?.false_alarm_pct ?? harm?.anomaly_rule?.plain?.false_alarm_pct ?? 27;
   const totals = mon && summary(mon.rows);
-  const file = (what) => `shift_${slug(area.name)}_${what}`;
+  const file = (what) => `shift_${slug(area?.name || 'area')}_${what}`;
   const mLabel = T.measures[variable];
 
   return (
     <main className="explore">
       {/* phones only (hidden by CSS above 900px): the result first. Same numbers as "Now against the past", not recomputed */}
-      <section className="mobile-summary" aria-label={T.summary.label}>
+      {!area ? <section className="mobile-summary" aria-label={T.summary.label}>
+        <h2>{T.area.start.heading}</h2>
+        <p className="small">{T.area.start.mobile}</p>
+        <p><button type="button" className="action" onClick={showExample}>{exampleLabel}</button></p>
+      </section> : <section className="mobile-summary" aria-label={T.summary.label}>
         <h2>{area.name}</h2>
         {cmp?.target && !loading ? (
           <div className="facts compact">
@@ -244,7 +254,7 @@ export default function Explore({ meta, theme, params }) {
         ) : <p className="small muted">{loading ? T.loading : ''}</p>}
         {cmp?.target && <p className="small">{T.summary.periods(fmtDay(dateOf(meta, cmp.target.from)), fmtDay(dateOf(meta, cmp.target.to)),
           layerMode === 'recent' ? T.summary.mapRecent : T.summary.mapMonth(MONTHS_LONG[+month.slice(5, 7) - 1], month.slice(0, 4)))}</p>}
-      </section>
+      </section>}
       <section className="mapside">
         <div className="mapstage">
         <MapBoundary onFail={() => setMapOk(false)}>
@@ -305,7 +315,7 @@ export default function Explore({ meta, theme, params }) {
               {Array.from({ length: days_in_month(month) }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{fmtDate(`${month}-${String(d).padStart(2, '0')}`)}</option>)}
             </select>
           </label>}
-          <button type="button" className="action ghost" onClick={() => setFocusKey((k) => k + 1)}>{T.map.focus}</button>
+          <button type="button" className="action ghost" disabled={!area} onClick={() => setFocusKey((k) => k + 1)}>{T.map.focus}</button>
           <button type="button" className="action ghost" onClick={() => setResetKey((k) => k + 1)}>{T.map.reset}</button>
           <button type="button" className="action done" onClick={() => { setToolsOpen(false); document.querySelector('.maptools-toggle')?.focus(); }}>{T.map.done}</button>
         </div>
@@ -373,6 +383,12 @@ export default function Explore({ meta, theme, params }) {
         <div className="print-only print-head">
           <b>{T.brand}</b> · {T.dataTo(fmtDay(dateOf(meta, lastK)))} · printed {new Date().toISOString().slice(0, 10)} · {location.href}
         </div>
+        {!area && <div className="start-empty">
+          <h2>{T.area.start.heading}</h2>
+          <p className="lede">{T.area.start.body}</p>
+          <p><button type="button" className="action" onClick={showExample}>{exampleLabel}</button></p>
+        </div>}
+        {area && <>
         <h2>{area.name}</h2>
         <p className="small">{area.tested ? `${T.area.tested} ` : ''}{T.area.edgeNote}</p>
         {loading && <p className="muted">{T.loading}</p>}
@@ -413,6 +429,7 @@ export default function Explore({ meta, theme, params }) {
             </section>
           </>
         )}
+        </>}
       </section>
     </main>
   );

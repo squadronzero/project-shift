@@ -331,3 +331,8 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
   .card { break-inside: avoid; }
   body { background: #fff; }
 }
+
+/* start screen (13 Nov): no area chosen yet */
+.start-empty { margin-top: 18px; }
+.start-empty .action { margin-top: 6px; }
+.maptools .action:disabled { cursor: not-allowed; }
