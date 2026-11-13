@@ -90,8 +90,13 @@ export default function Explore({ meta, theme, params }) {
   useEffect(() => {                   // Escape closes the phone map settings and returns focus to their button
     if (!toolsOpen) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') { setToolsOpen(false); document.querySelector('.maptools-toggle')?.focus(); } };
+    // a click or tap outside the panel and its button closes it (Map View, 14 Nov)
+    const onDown = (e) => { if (!e.target.closest?.('#maptools, .maptools-toggle')) setToolsOpen(false); };
+    // phones: the settings open as a sheet below the map, so bring it into view
+    if (window.innerWidth <= 600) requestAnimationFrame(() => document.getElementById('maptools')?.scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' }));
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    document.addEventListener('pointerdown', onDown);
+    return () => { window.removeEventListener('keydown', onKey); document.removeEventListener('pointerdown', onDown); };
   }, [toolsOpen]);
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1000);
@@ -301,9 +306,13 @@ export default function Explore({ meta, theme, params }) {
         </MapBoundary>
 
         {mapOk && <>
-        <button type="button" className="maptools-toggle" aria-expanded={toolsOpen} aria-controls="maptools"
+        {/* Map View (14 Nov): one small button, always visible; the settings open in a temporary panel */}
+        <button type="button" className="maptools-toggle" aria-expanded={toolsOpen} aria-controls="maptools" aria-haspopup="dialog"
           onClick={() => setToolsOpen((o) => !o)}>
-          <span aria-hidden="true">⚙</span><span>{T.map.settingsButton(T.recent.layers[layerMode], T.map.views[view])}</span>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3 3 7.5l9 4.5 9-4.5L12 3z M3 12l9 4.5 9-4.5 M3 16.5 12 21l9-4.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>
+          <b>{T.map.viewButton}</b>
+          <span className="viewnow">{T.map.viewNow(view === '3d' ? '3D' : '2D', T.recent.layers[layerMode], basemap === 'standard' ? '' : T.map.basemaps[basemap])}</span>
+          <span aria-hidden="true">▾</span>
         </button>
 
         {(mapNote || (layerMode === 'recent' && (rUpdating || rNote || rStatus === null))) && <p className="mapnote" role="status">
@@ -321,34 +330,48 @@ export default function Explore({ meta, theme, params }) {
         {(layerMode === 'record' ? !fires : (rStatus === undefined || (rStatus && !rCells && !rUpdating))) &&
           <p className="maploading" role="status">{layerMode === 'record' ? T.map.loading : T.recent.loadingLayer}</p>}
         </>}
-        </div>
         {mapOk && <>
-        <div id="maptools" className={toolsOpen ? 'maptools open' : 'maptools'} role="toolbar" aria-label={T.map.view}
->
-          <label>{T.recent.layer}
-            <select value={layerMode} onChange={(e) => { setPlaying(false); setPicked(null); setRPicked(null); setLayerMode(e.target.value); }}>
-              {Object.entries(T.recent.layers).map(([k, l]) => <option key={k} value={k} disabled={k === 'recent' && rStatus === null}>{l}</option>)}
-            </select>
-          </label>
-          <div className="seg" role="group" aria-label={T.map.view}>
-            {['2d', '3d'].map((v) => <button key={v} type="button" className={view === v ? 'on' : ''} aria-pressed={view === v}
-              onClick={() => setView(v)}>{T.map.views[v]}</button>)}
+        <div id="maptools" className={toolsOpen ? 'maptools open' : 'maptools'} role="dialog" aria-label={T.map.view}>
+          <div className="mt-head"><b>{T.map.viewButton}</b>
+            <button type="button" className="mt-close" aria-label={T.map.closeView}
+              onClick={() => { setToolsOpen(false); document.querySelector('.maptools-toggle')?.focus(); }}>×</button></div>
+          <div className="mt-group" role="group" aria-label={T.recent.layer}>
+            <span className="mt-label">{T.recent.layer}</span>
+            <div className="seg">
+              {Object.entries(T.recent.layers).map(([k, l]) => <button key={k} type="button" className={layerMode === k ? 'on' : ''} aria-pressed={layerMode === k}
+                disabled={k === 'recent' && rStatus === null}
+                onClick={() => { if (layerMode === k) return; setPlaying(false); setPicked(null); setRPicked(null); setLayerMode(k); }}>{l}</button>)}
+            </div>
           </div>
-          <label>{T.map.basemap}
-            <select value={basemap} onChange={(e) => setBasemap(e.target.value)}>
+          <div className="mt-group" role="group" aria-label={T.map.projection}>
+            <span className="mt-label">{T.map.projection}</span>
+            <div className="seg">
+              {['2d', '3d'].map((v) => <button key={v} type="button" className={view === v ? 'on' : ''} aria-pressed={view === v}
+                onClick={() => setView(v)}>{T.map.views[v]}</button>)}
+            </div>
+          </div>
+          <div className="mt-group">
+            <label className="mt-label" htmlFor="mt-basemap">{T.map.basemap}</label>
+            <select id="mt-basemap" value={basemap} onChange={(e) => setBasemap(e.target.value)}>
               {Object.entries(T.map.basemaps).map(([k, l]) => <option key={k} value={k}>{l}</option>)}
             </select>
-          </label>
-          {basemap === 'daily' && <label>{T.map.imageryDay}
-            <select value={Math.min(dayOfMonth, days_in_month(month))} onChange={(e) => setDayOfMonth(+e.target.value)}>
-              {Array.from({ length: days_in_month(month) }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{fmtDate(`${month}-${String(d).padStart(2, '0')}`)}</option>)}
-            </select>
-          </label>}
-          <button type="button" className="action ghost" disabled={!area} onClick={() => setFocusKey((k) => k + 1)}>{T.map.focus}</button>
-          <button type="button" className="action ghost" onClick={() => setResetKey((k) => k + 1)}>{T.map.reset}</button>
+            {basemap === 'daily' && <label>{T.map.imageryDay}
+              <select value={Math.min(dayOfMonth, days_in_month(month))} onChange={(e) => setDayOfMonth(+e.target.value)}>
+                {Array.from({ length: days_in_month(month) }, (_, i) => i + 1).map((d) => <option key={d} value={d}>{fmtDate(`${month}-${String(d).padStart(2, '0')}`)}</option>)}
+              </select>
+            </label>}
+          </div>
+          <div className="mt-group" role="group" aria-label={T.map.camera}>
+            <span className="mt-label">{T.map.camera}</span>
+            <div className="mt-row">
+              <button type="button" className="action ghost" disabled={!area} onClick={() => setFocusKey((k) => k + 1)}>{T.map.focus}</button>
+              <button type="button" className="action ghost" onClick={() => setResetKey((k) => k + 1)}>{T.map.reset}</button>
+            </div>
+          </div>
           <button type="button" className="action done" onClick={() => { setToolsOpen(false); document.querySelector('.maptools-toggle')?.focus(); }}>{T.map.done}</button>
         </div>
         </>}
+        </div>
         <p className="visually-hidden" aria-live="polite">{mapSummary}</p>
 
         {layerMode === 'recent' ? <div className="mapbar">
