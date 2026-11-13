@@ -53,6 +53,100 @@ Why now: NASA FIRMS stopped producing Suomi NPP data at 13:00 UTC on 2 November 
 
 *Explore: any area against its own 2003 to 2025 normal. Here Southeast Australia during the 2019-20 Black Summer.*
 
+## How SHIFT is built
+
+From NASA's fire detections to the website, in three parts: the NASA data, the harmonisation pipeline (run once, on Google Colab), and the website build (run by GitHub Actions on every change and every 3 hours). The historical record is built once and published as the `site-data` release. Only the recent detections and the site itself are rebuilt every 3 hours.
+
+```mermaid
+flowchart TB
+    accTitle: How SHIFT is built
+    accDescr: NASA FIRMS detections from MODIS, Suomi NPP and NOAA-20 are filtered, turned into 0.05 degree hotspot cell-days, converted with a factor per 2.5 degree cell and calendar month into one harmonised record, checked, and exported as a GitHub release. A GitHub Actions workflow builds the static website from that release plus recent near-real-time detections and NASA POWER weather context, and deploys it to GitHub Pages and a Cloudflare Pages backup.
+
+    subgraph SRC["1 · NASA FIRMS active-fire data"]
+        direction LR
+        M["MODIS Terra + Aqua<br/>1 km pixels, from 2002"]
+        V["VIIRS Suomi NPP<br/>375 m, 2012 to 2 Nov 2026"]
+        N["VIIRS NOAA-20<br/>375 m, from 2018"]
+    end
+
+    subgraph PIPE["2 · Harmonisation pipeline · Python on Google Colab"]
+        direction TB
+        F["Filter every detection<br/>nominal and high confidence, vegetation fires,<br/>outside 77,706 persistent non-fire heat cells"]
+        H["Hotspots<br/>0.05° cell-days with fire, FRP summed"]
+        K["Factor k = VIIRS total / MODIS total<br/>per 2.5° cell and calendar month,<br/>fitted on 2012-2019, pulled to its 10° tile"]
+        R["Harmonised record 2002-2026<br/>MODIS × k before 20 Jan 2012, Suomi NPP after,<br/>NOAA-20 or MODIS fills outages, else 'no data', never zero"]
+        C["Checks<br/>2012 switch, backward test, simpler methods,<br/>untouched 2026 test, GFED4 burned area"]
+        E["Export · site_data.zip<br/>daily values per 1° cell, monthly map layers,<br/>normals, month classes, ranges, reports"]
+        F --> H --> K --> R --> C --> E
+    end
+
+    RULE["Rule before the run<br/>every choice that could tilt a result is written in<br/>config/settings.yaml and committed before the run that judges it"]
+    RULE -.-> PIPE
+
+    REL[("GitHub release<br/>site-data")]
+
+    subgraph WEB["3 · Website build · GitHub Actions, on every change and every 3 hours"]
+        direction TB
+        D["Download site_data.zip"]
+        NRT["Recent detections<br/>raw FIRMS near-real-time, NOAA-20 and NOAA-21,<br/>key kept as a GitHub secret, checked row by row"]
+        B["Build the site<br/>React + MapLibre, static files, no server"]
+        D --> B
+        NRT --> B
+    end
+
+    POW["NASA POWER weather<br/>context only, never in the record"]
+    GH["GitHub Pages<br/>official site"]
+    CF["Cloudflare Pages<br/>backup copy, same files"]
+
+    M --> F
+    V --> F
+    N --> F
+    E --> REL --> D
+    POW -.-> B
+    B --> GH
+    B --> CF
+
+    classDef nasa fill:#0b3d91,stroke:#06245a,color:#ffffff,stroke-width:2px
+    classDef step fill:#1e293b,stroke:#0f172a,color:#ffffff,stroke-width:2px
+    classDef check fill:#14532d,stroke:#052e16,color:#ffffff,stroke-width:2px
+    classDef release fill:#4c1d95,stroke:#2e1065,color:#ffffff,stroke-width:2px
+    classDef web fill:#7c2d12,stroke:#431407,color:#ffffff,stroke-width:2px
+    classDef out fill:#92400e,stroke:#451a03,color:#ffffff,stroke-width:2px
+    classDef context fill:#374151,stroke:#111827,color:#ffffff,stroke-width:2px,stroke-dasharray:5 3
+    classDef rule fill:#fef3c7,stroke:#92400e,color:#111827,stroke-width:2px,stroke-dasharray:5 3
+
+    class M,V,N nasa
+    class F,H,K,R step
+    class C check
+    class E,REL release
+    class D,NRT,B web
+    class GH,CF out
+    class POW context
+    class RULE rule
+
+    style SRC fill:#e2e8f0,stroke:#0b3d91,stroke-width:2px,color:#0f172a
+    style PIPE fill:#e2e8f0,stroke:#1e293b,stroke-width:2px,color:#0f172a
+    style WEB fill:#e2e8f0,stroke:#7c2d12,stroke-width:2px,color:#0f172a
+    linkStyle default stroke:#64748b,stroke-width:2px
+```
+
+*Colour key: blue, NASA input data · slate, processing · green, checks · purple, published data · rust, website build · orange, the two live sites · dashed grey, context only (never enters the record) · dashed amber, the rule that governs every pipeline choice. Solid arrows carry data, dotted arrows show governance or context. Every text and fill pair meets WCAG AA contrast (7:1 or higher).*
+
+**Where each step lives in the code** (so every box can be checked). The reports are published with the website, under `data/validation/` on the site:
+
+| Step in the diagram | Code | Its report or output |
+| --- | --- | --- |
+| NASA FIRMS data in, filter, hotspots | [`pipeline/shift/fetch.py`](pipeline/shift/fetch.py), [`static_mask.py`](pipeline/shift/static_mask.py), [`grid.py`](pipeline/shift/grid.py) | L2 cell-days |
+| Factor k per 2.5° cell and calendar month | [`pipeline/shift/factors.py`](pipeline/shift/factors.py), [`resolution.py`](pipeline/shift/resolution.py) | `report_factors.json`, `report_resolution.json` |
+| Harmonised record, outage fills, "no data" | [`pipeline/shift/harmonise.py`](pipeline/shift/harmonise.py), [`nodata.py`](pipeline/shift/nodata.py) | `report_harmonise.json`, `report_nodata.json` |
+| Checks | [`pipeline/shift/checks.py`](pipeline/shift/checks.py), [`external.py`](pipeline/shift/external.py) | `report_checks.json`, `report_external.json`, the website's Validation page |
+| Export | [`pipeline/shift/export.py`](pipeline/shift/export.py) | `site_data.zip` in the `site-data` release |
+| Rule before the run | [`config/settings.yaml`](config/settings.yaml), fingerprints checked by [`docs/preflight/verify_baseline.py`](docs/preflight/verify_baseline.py) | git history (commit time of each rule) |
+| Website build and both deploys | [`.github/workflows/pages.yml`](.github/workflows/pages.yml) | the Website runs in the Actions tab |
+| Recent detections | [`recent/fetch_firms.py`](recent/fetch_firms.py), [`recent/snapshot.py`](recent/snapshot.py) | `data/recent/status.json` on the site |
+| NASA POWER weather context | [`context/fetch_power.py`](context/fetch_power.py), rules in [`context/power_rules.json`](context/power_rules.json) | `context/power/` on the site |
+| Website engine (every number on screen) | [`web/src/lib/`](web/src/lib/) | the website |
+
 ## Repository layout
 
 ```
