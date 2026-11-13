@@ -179,6 +179,12 @@ const T = {
     focus: 'Focus on area',
     done: 'Done',
     settingsButton: (layer, view) => `Map settings: ${layer}, ${view}`,
+    // the compact Map View control (14 Nov): one button, the settings in a temporary panel
+    viewButton: 'Map view',
+    viewNow: (view, layer, backdrop) => `${view} · ${layer}${backdrop ? ` · ${backdrop}` : ''}`,
+    projection: 'Projection',
+    camera: 'Camera',
+    closeView: 'Close map view settings',
     loading: 'Loading the map…',
     gaps: 'Show satellite gaps',
     play: 'Play months', pause: 'Pause', speed: 'Speed',
