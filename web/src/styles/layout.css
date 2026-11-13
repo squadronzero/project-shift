@@ -399,3 +399,11 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
   .maptools .done { display: inline-flex; align-self: flex-end; }
   .maptools-toggle .viewnow { display: none; }
 }
+
+/* the brand is the home-and-refresh control (14 Nov): looks like the title, behaves like a button */
+.brandbtn { all: unset; cursor: pointer; border-radius: 4px; transition: opacity 120ms; }
+.brandbtn:hover { opacity: 0.8; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 5px; }
+.brandbtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 4px; }
+.brandbtn:disabled { cursor: progress; opacity: 0.7; }
+.brandnote { margin: 0; padding: 8px 24px; font-size: var(--font-size-small); background: var(--mist); border-bottom: 1px solid var(--rule); }
+@media (prefers-reduced-motion: reduce) { .brandbtn { transition: none; } }
