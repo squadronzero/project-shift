@@ -9,6 +9,9 @@ export default function AreaPicker({ area, setArea, drawing, setDrawing, setErro
   const [box, setBox] = useState({ w: '', s: '', e: '', n: '' });
   const [pt, setPt] = useState({ lat: '', lon: '', km: '50' });
 
+  // an area chosen outside the picker (the start screen's example is a country): show the Country list (14 Nov)
+  useEffect(() => { if (area?.kind === 'country') setMode('country'); }, [area?.spec]);  // eslint-disable-line react-hooks/exhaustive-deps
+
   // keep the typed fields in step with the current area, so they are a starting point for edits
   useEffect(() => {
     if (!area?.box) return;
