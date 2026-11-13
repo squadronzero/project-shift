@@ -155,9 +155,14 @@ report, limitations, reproducibility guide, improvement plan and judging notes b
 
 ## Use of AI
 
-Code, tests and documentation were written with AI help (Claude), and the team used Gemini and
-ChatGPT as tutors for running the steps. The method, the decisions and every data run are the
-team's. Numbers come only from tested code. Full details: `docs/AI_USE.md`.
+Claude (Anthropic) was the team's engineer and scientific collaborator: it proposed the
+harmonisation method (each step approved by the team under a rule fixed before the run), designed
+the validation, and wrote nearly all of the code, tests and documentation. ChatGPT (OpenAI) helped
+build the earlier Florida prototype, then tutored the team and reviewed Claude's work. Gemini
+(Google), as the "SHIFT Tutor" Gem, was the team's main tutor. Video 1 used AI-generated footage
+from Google Veo through Google Flow. The team chose the challenge, obtained every dataset, ran
+every computation, approved every decision and reviewed every change. No AI runs inside SHIFT and
+every number comes from tested code. Full details: `docs/AI_USE.md`.
 
 ## Licence
 
