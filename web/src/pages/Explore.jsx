@@ -20,7 +20,7 @@ import Season from '../components/Season.jsx';
 import Downloads from '../components/Downloads.jsx';
 import { MAX_TILES, areaSeries, dateOf, iso, json, lastDataDay, monthLayer, tilesOfCells, dayIndex, zoneMonth } from '../lib/data.js';
 import { IMAGERY_FIRST_DAY, cellInfo, days_in_month, imagery } from '../lib/geo.js';
-import { areaFromSpec, boxArea, pointArea, presetArea } from '../lib/area.js';
+import { COUNTRIES, areaFromSpec, boxArea, countryArea, pointArea, presetArea } from '../lib/area.js';
 import { detectionInfo, minuteToIso, recentFreshness, recentOverview, recentPoints, recentStatus, tilesInView } from '../lib/recent.js';
 import { RECENT_POINTS_FROM } from '../components/MapView.jsx';
 import { areaRange, compareWindow, monthly, normalMonth, season, summary } from '../lib/analysis.js';
@@ -43,7 +43,11 @@ export default function Explore({ meta, theme, params }) {
   // does not exist also leaves nothing chosen, and says so
   const [area, setArea] = useState(() => areaFromSpec(params.area, PLACES) || null);
   const badArea = !!(params.area && !areaFromSpec(params.area, PLACES));
-  const example = PLACES.find((p) => p.id === 'bangladesh') || PLACES[0];
+  // the example is the Bangladesh COUNTRY view (14 Nov, judging audit P1): the preset box is a rectangle with about
+  // two-thirds of its October 2026 fire in India and Myanmar, so it must not be quoted as "Bangladesh"
+  const exampleCountry = COUNTRIES.find((c) => c.id === 'bangladesh');
+  const exampleArea = () => (exampleCountry ? countryArea(exampleCountry) : presetArea(PLACES[0]));
+  const exampleName = exampleCountry ? exampleCountry.name : PLACES[0].name;
   const [drawing, setDrawing] = useState(false);
   const [variable, setVariable] = useState(params.v === 'frp' ? 'frp' : 'cells');
   const [series, setSeries] = useState(null);
@@ -205,9 +209,9 @@ export default function Explore({ meta, theme, params }) {
   const onBox = (b) => { setError(null); setPlaying(false); setArea(boxArea(b)); };
   const pickArea = (a) => { setError(null); setPlaying(false); setArea(a); };
   const pickMonth = (m) => { setPlaying(false); setMonth(m); };
-  // the start screen's one-tap example: the first tested preset over the latest month of the record
-  const showExample = () => { setCmpMode('month'); pickArea(presetArea(example)); };
-  const exampleLabel = T.area.start.example(example.name, MONTHS_LONG[+lastIso.slice(5, 7) - 1], lastIso.slice(0, 4));
+  // the start screen's one-tap example: Bangladesh (country) over the latest month of the record
+  const showExample = () => { setCmpMode('month'); pickArea(exampleArea()); };
+  const exampleLabel = T.area.start.example(exampleName, MONTHS_LONG[+lastIso.slice(5, 7) - 1], lastIso.slice(0, 4));
 
   // the picture date follows the map month (clamped to the month and to the last data day)
   const imageryDay = useMemo(() => {
