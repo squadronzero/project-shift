@@ -9,7 +9,8 @@ import Method from './pages/Method.jsx';
 import { dateOf, json, lastDataDay } from './lib/data.js';
 
 import { readHash, writeHash } from './lib/url.js';
-import { recentFreshness, recentStatus } from './lib/recent.js';
+import { recentFreshness, recentStatus, snapshotId } from './lib/recent.js';
+import { checkAndReload, newerThanBefore } from './refresh.js';
 
 const VIEWS = Object.keys(T.views);
 
@@ -19,10 +20,30 @@ export default function App() {
   const [current, setCurrent] = useState(view);
   const [meta, setMeta] = useState(null);
   const [recent, setRecent] = useState(null);
-  useEffect(() => { recentStatus().then(setRecent); }, []);
+  const [recentDone, setRecentDone] = useState(false);
+  useEffect(() => { recentStatus().then((r) => { setRecent(r); setRecentDone(true); }); }, []);
   const [error, setError] = useState(null);
 
   useEffect(() => { json('meta.json').then(setMeta).catch(() => setError(T.loadError)); }, []);
+  // the brand: home and refresh (14 Nov). One check at a time; offline it only returns to Explore.
+  const [busy, setBusy] = useState(false);
+  const [exploreKey, setExploreKey] = useState(0);
+  const [brandNote, setBrandNote] = useState(null);
+  const home = async () => {
+    if (busy) return;
+    setBusy(true); setBrandNote(null);
+    const reloaded = await checkAndReload({ meta: meta?.generated_utc || '', recent: snapshotId(recent) });
+    if (!reloaded) {                       // offline: back to the Explore start, no reload, say so plainly
+      setBusy(false); setCurrent('explore'); setExploreKey((k) => k + 1); history.replaceState(null, '', '#explore');
+      setBrandNote(T.brandOffline);
+    }
+  };
+  // after a reload from the brand: a note only when newer data was really loaded
+  useEffect(() => {
+    if (!meta || !recentDone) return;
+    const n = newerThanBefore({ meta: meta.generated_utc || '', recent: snapshotId(recent) });
+    if (n) setBrandNote(T.brandNewer(n.record, n.recent));
+  }, [meta, recent, recentDone]);
   useEffect(() => { if (current !== 'explore') writeHash(current); }, [current]);
 
   return (
@@ -32,7 +53,7 @@ export default function App() {
       <button type="button" className="skip" onClick={() => { const el = document.getElementById('results') || document.querySelector('main'); el?.focus(); el?.scrollIntoView(); }}>{T.skip}</button>
       <header className="top">
         <div className="brand">
-          <h1>{T.brand}</h1>
+          <h1><button type="button" className="brandbtn" aria-label={T.brandAction} title={T.brandAction} onClick={home} disabled={busy}>{T.brand}</button></h1>
           <p>{T.tagline}</p>
         </div>
         <div className="top-right">
@@ -48,8 +69,9 @@ export default function App() {
         </nav>
       </header>
 
+      {brandNote && <p className="brandnote" role="status">{brandNote} <button type="button" className="linkbtn" onClick={() => setBrandNote(null)}>OK</button></p>}
       {error && <main className="page"><p className="notice" role="alert">{error}</p></main>}
-      {current === 'explore' && meta && <Explore meta={meta} theme={theme} params={view === 'explore' ? params : {}} />}
+      {current === 'explore' && meta && <Explore key={exploreKey} meta={meta} theme={theme} params={view === 'explore' && !exploreKey ? params : {}} />}
       {current === 'switch' && <Switch2012 theme={theme} />}
       {current === 'validation' && <Validation />}
       {current === 'method' && <Method meta={meta} />}

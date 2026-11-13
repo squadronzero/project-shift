@@ -23,7 +23,10 @@ export function fmtDate(s) {
 export const fmtDay = (d) => fmtDate(d.toISOString().slice(0, 10));
 
 const T = {
-  brand: 'SHIFT',
+  brand: 'S.H.I.F.T',
+  brandAction: 'S.H.I.F.T: home and refresh',
+  brandOffline: 'Could not reach the website to check for newer published data. Showing what is already loaded.',
+  brandNewer: (record, recent) => `Newer published data loaded: ${[record && 'the harmonised record', recent && 'the recent detections'].filter(Boolean).join(' and ')}.`,
   tagline: 'One fire record from two generations of NASA satellites, from 2002 to the latest data',
   dataTo: (d) => `Record to ${d}`,
   recentTo: (t, stale) => `Recent detections to ${fmtDate(t)}${stale ? ' (not current)' : ''}`,
