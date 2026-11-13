@@ -286,7 +286,7 @@ export default function Explore({ meta, theme, params }) {
       <section className="mapside">
         <div className="mapstage">
         <MapBoundary onFail={() => setMapOk(false)}>
-          <MapView key={theme.name} theme={theme} fires={fires} notFire={notFire} showNotFire={showNotFire}
+          <MapView key="map" theme={theme} fires={fires} notFire={notFire} showNotFire={showNotFire}
             area={area} drawing={drawing} onBox={onBox} onDrawEnd={() => { setDrawing(false); setDraftCorners(0); }}
             onPolygon={onPolygon} onDraft={setDraftCorners} drawCmd={drawCmd}
             onDateLine={() => setError(T.map.dateLine)}
