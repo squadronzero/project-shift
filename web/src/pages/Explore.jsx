@@ -9,7 +9,8 @@ import MapLegend from '../components/MapLegend.jsx';
 import CellPanel from '../components/CellPanel.jsx';
 import RecentPanel from '../components/RecentPanel.jsx';
 import RecentLegend from '../components/RecentLegend.jsx';
-import AreaPicker from '../components/AreaPicker.jsx';
+import SearchBar from '../components/SearchBar.jsx';
+import { cleanRing, polygonArea, polygonFromSpec } from '../components/polygon.js';
 import ChartCard from '../components/ChartCard.jsx';
 import Calendar, { calendarLegend } from '../components/Calendar.jsx';
 import MonthGrid from '../components/MonthGrid.jsx';
@@ -45,6 +46,7 @@ export default function Explore({ meta, theme, params }) {
   // a box in a link gets the same check as typed coordinates (14 Nov, judging audit): a box across the date line
   // used to be read as an empty strip and showed "No fire was recorded"
   const linkArea = (spec) => {
+    if (spec?.startsWith('poly:')) return polygonFromSpec(spec);
     if (spec?.startsWith('box:')) {
       const [w, s, e, n] = spec.slice(4).split(',').map(Number);
       if (checkBox({ w, s, e, n })) return null;
@@ -59,6 +61,10 @@ export default function Explore({ meta, theme, params }) {
   const exampleArea = () => (exampleCountry ? countryArea(exampleCountry) : presetArea(PLACES[0]));
   const exampleName = exampleCountry ? exampleCountry.name : PLACES[0].name;
   const [drawing, setDrawing] = useState(false);
+  // a shape being drawn (UI lab, 14 Nov): how many corners so far, and the page's Finish / Undo / Cancel
+  const [draftCorners, setDraftCorners] = useState(0);
+  const [drawCmd, setDrawCmd] = useState(null);
+  const drawCommand = useMemo(() => (op) => setDrawCmd({ op, at: Date.now() }), []);
   const [variable, setVariable] = useState(params.v === 'frp' ? 'frp' : 'cells');
   const [series, setSeries] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -220,6 +226,11 @@ export default function Explore({ meta, theme, params }) {
   }, [meta]);
 
   const onBox = (b) => { setError(null); setPlaying(false); setArea(boxArea(b)); };
+  const onPolygon = (pts) => {
+    const c = cleanRing(pts);
+    if (c.error) { setError(c.error); return; }
+    setError(null); setPlaying(false); setArea(polygonArea(c.ring));
+  };
   const pickArea = (a) => { setError(null); setPlaying(false); setArea(a); };
   const pickMonth = (m) => { setPlaying(false); setMonth(m); };
   // the start screen's one-tap example: Bangladesh (country) over the latest month of the record
@@ -276,7 +287,8 @@ export default function Explore({ meta, theme, params }) {
         <div className="mapstage">
         <MapBoundary onFail={() => setMapOk(false)}>
           <MapView key={theme.name} theme={theme} fires={fires} notFire={notFire} showNotFire={showNotFire}
-            area={area} drawing={drawing} onBox={onBox} onDrawEnd={() => setDrawing(false)}
+            area={area} drawing={drawing} onBox={onBox} onDrawEnd={() => { setDrawing(false); setDraftCorners(0); }}
+            onPolygon={onPolygon} onDraft={setDraftCorners} drawCmd={drawCmd}
             onDateLine={() => setError(T.map.dateLine)}
             variable={variable} view={view} basemap={img ? basemap : 'standard'} imageryDay={imageryDay}
             gaps={gaps} showGaps={showGaps} picked={picked} onPick={(c) => { setPlaying(false); setPicked(c); }}
@@ -388,7 +400,8 @@ export default function Explore({ meta, theme, params }) {
 
       <section className="story" id="results" tabIndex={-1} aria-live="polite">
         <div className="controls">
-          <AreaPicker area={area} setArea={pickArea} drawing={drawing} setDrawing={setDrawing} setError={setError} />
+          <SearchBar area={area} setArea={pickArea} drawing={drawing} setDrawing={setDrawing} setError={setError}
+            draftCorners={draftCorners} drawCommand={drawCommand} />
           <div className="seg" role="group" aria-label="Measure">
             {['cells', 'frp'].map((v) => <button key={v} className={variable === v ? 'on' : ''} aria-pressed={variable === v}
               onClick={() => setVariable(v)}>{T.measures[v]}</button>)}
@@ -407,7 +420,7 @@ export default function Explore({ meta, theme, params }) {
         </div>}
         {area && <>
         <h2>{area.name}</h2>
-        <p className="small">{area.tested ? `${T.area.tested} ` : ''}{T.area.edgeNote}</p>
+        <p className="small">{area.tested ? `${T.area.tested} ` : ''}{area.kind === 'polygon' ? T.search.shapeNote : T.area.edgeNote}</p>
         {loading && <p className="muted">{T.loading}</p>}
         {!loading && series && series.tiles === 0 && <p className="muted">{T.noFire}</p>}
         {!loading && series && mon && series.tiles > 0 && (

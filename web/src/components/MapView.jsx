@@ -68,6 +68,7 @@ function hatch(colour) {
 }
 
 export default function MapView({ theme, fires, notFire, showNotFire, area, drawing, onBox, onDrawEnd, onDateLine,
+  onPolygon, onDraft, drawCmd = null,
   variable = 'frp', view = '2d', basemap = 'standard', imageryDay = null, gaps = null, showGaps = false,
   picked = null, onPick, resetKey = 0, focusKey = 0, reducedMotion = false, onImageryError, onStatus,
   layerMode = 'record', recentCells = null, recentPts = null, recentTip, onRecentPick, onViewChange }) {
@@ -76,7 +77,8 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
   const ready = useRef(false);
   const [failed, setFailed] = useState(false);
   const latest = useRef({});
-  latest.current = { onBox, onDrawEnd, drawing, onPick, onDateLine, onImageryError, onStatus, view, reducedMotion,
+  const drawApi = useRef(null);
+  latest.current = { onBox, onDrawEnd, drawing, onPick, onDateLine, onImageryError, onStatus, view, reducedMotion, onPolygon, onDraft,
     recentTip, onRecentPick, onViewChange };
   const squares = useMemo(() => squaresOf(fires), [fires]);
 
@@ -151,6 +153,13 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
       m.addLayer({ id: 'area-line', type: 'line', source: 'area', paint: { 'line-color': theme.area, 'line-width': 2.2 } });
       m.addSource('pick', { type: 'geojson', data: EMPTY });
       m.addLayer({ id: 'pick', type: 'line', source: 'pick', paint: { 'line-color': theme.select, 'line-width': 2.5 } });
+      // a shape being drawn (UI lab, 14 Nov): its sides, the rubber band to the pointer, and the corners
+      m.addSource('draft', { type: 'geojson', data: EMPTY });
+      m.addLayer({ id: 'draft-line', type: 'line', source: 'draft', filter: ['==', ['geometry-type'], 'LineString'],
+        paint: { 'line-color': theme.area, 'line-width': 2, 'line-dasharray': [2, 1.5] } });
+      m.addLayer({ id: 'draft-pts', type: 'circle', source: 'draft', filter: ['==', ['geometry-type'], 'Point'],
+        paint: { 'circle-radius': ['case', ['==', ['get', 'first'], 1], 6, 4], 'circle-color': theme.surface,
+          'circle-stroke-color': theme.area, 'circle-stroke-width': 2 } });
       // place names on top (symbols never take clicks), fewer and smaller on a narrow screen
       for (const l of geoLabelLayers(theme, (el.current?.clientWidth || 1000) < 600)) m.addLayer(l);
       geo.showWorld();
@@ -219,7 +228,7 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
     let start = null;
     const isGlobe = () => latest.current.view === '3d';
     const down = (e) => {
-      if (!latest.current.drawing) return;
+      if (latest.current.drawing !== 'box' && latest.current.drawing !== true) return;
       e.preventDefault(); m.dragPan.disable(); m.dragRotate.disable(); start = e.lngLat;
     };
     const move = (e) => {
@@ -234,6 +243,42 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
       if (b.crossesDateLine) latest.current.onDateLine?.();
       else if (b.e - b.w >= 0.5 && b.n - b.s >= 0.5) latest.current.onBox(b);
       latest.current.onDrawEnd();
+    };
+    // drawing a shape (UI lab, 14 Nov): click or tap to add corners, click the first corner or double-click to
+    // finish. Corners are the map's own geographic coordinates (e.lngLat), on the 2D map and on the globe alike,
+    // never screen pixels. The page's buttons can finish, undo or cancel (drawCmd below).
+    let verts = [], hover = null;
+    const isPoly = () => latest.current.drawing === 'polygon';
+    const draft = () => {
+      const line = verts.length ? [...verts, ...(hover ? [hover] : [])] : [];
+      const feats = [];
+      if (line.length >= 2) feats.push({ type: 'Feature', properties: {}, geometry: { type: 'LineString', coordinates: line } });
+      verts.forEach((v, i) => feats.push({ type: 'Feature', properties: { first: i === 0 ? 1 : 0 }, geometry: { type: 'Point', coordinates: v } }));
+      m.getSource('draft')?.setData({ type: 'FeatureCollection', features: feats });
+      latest.current.onDraft?.(verts.length);
+    };
+    const finishPoly = () => {
+      const pts = verts; verts = []; hover = null; draft();
+      m.doubleClickZoom.enable();
+      if (pts.length >= 3) latest.current.onPolygon?.(pts);
+      latest.current.onDrawEnd();
+    };
+    const lngLatOk = (ll) => ll && Number.isFinite(ll.lng) && Number.isFinite(ll.lat);
+    m.on('click', (e) => {
+      if (!isPoly() || !lngLatOk(e.lngLat)) return;
+      m.doubleClickZoom.disable();
+      if (verts.length >= 3) {
+        const p0 = m.project(verts[0]);
+        if (Math.hypot(p0.x - e.point.x, p0.y - e.point.y) < 14) { finishPoly(); return; }
+      }
+      verts.push([e.lngLat.lng, e.lngLat.lat]); draft();
+    });
+    m.on('dblclick', (e) => { if (isPoly() && verts.length >= 3) { e.preventDefault(); finishPoly(); } });
+    m.on('mousemove', (e) => { if (isPoly() && verts.length && lngLatOk(e.lngLat)) { hover = [e.lngLat.lng, e.lngLat.lat]; draft(); } });
+    drawApi.current = {
+      finish: finishPoly,
+      undo: () => { verts.pop(); hover = null; draft(); },
+      cancel: () => { verts = []; hover = null; draft(); m.doubleClickZoom.enable(); latest.current.onDrawEnd(); },
     };
     m.on('mousedown', down); m.on('touchstart', down);
     m.on('mousemove', move); m.on('touchmove', move);
@@ -338,6 +383,8 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
   }, [focusKey]);  // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => { if (map.current) map.current.getCanvas().style.cursor = drawing ? 'crosshair' : ''; }, [drawing]);
+  // the page's Finish, Undo and Cancel buttons (and Escape) for a shape being drawn
+  useEffect(() => { if (drawCmd?.op && drawApi.current) drawApi.current[drawCmd.op]?.(); }, [drawCmd]);
 
   if (failed) return <div className="map map-failed" role="note"><p>{T.map.mapFailed}</p></div>;
   return <div ref={el} className="map" role="application" aria-label={`${T.map.label}. ${T.map.keys}`} />;
