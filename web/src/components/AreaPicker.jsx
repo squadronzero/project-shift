@@ -52,7 +52,7 @@ export default function AreaPicker({ area, setArea, drawing, setDrawing, setErro
         {mode === 'preset' && (
           <label>{T.area.preset}
             <select value={area?.kind === 'preset' ? area.id : ''} onChange={(e) => { const p = PLACES.find((x) => x.id === e.target.value); if (p) go(presetArea(p)); }}>
-              {area?.kind !== 'preset' && <option value="">…</option>}
+              {area?.kind !== 'preset' && <option value="">{area ? '…' : T.area.choose}</option>}
               {PLACES.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </label>

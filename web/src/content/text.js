@@ -66,7 +66,16 @@ const T = {
     share: 'Copy share link',
     copied: 'Link copied',
     modePick: 'How to choose the area',
-    notFound: (spec, fallback) => `Couldn't find the area "${spec}" in this link, showing ${fallback} instead.`,
+    notFound: (spec) => `Couldn't find the area "${spec}" in this link. Choose an area below.`,
+    choose: 'Choose an area…',
+    // the page opens on the world map with no area chosen (13 Nov): what the story side shows until one is picked
+    start: {
+      heading: 'Choose an area',
+      body: 'Pick a preset, a country, coordinates or a point, or draw a box on the map. SHIFT then shows how the latest '
+        + 'weeks compare with the same dates in earlier years, the usual fire season, the daily calendar and the monthly trend.',
+      example: (name, monthName, year) => `Example: ${name}, ${monthName} ${year}`,
+      mobile: 'Choose an area below the map to see its fire history.',
+    },
   },
 
   // ---------------------------------------------------------------- recent detections (D38)
