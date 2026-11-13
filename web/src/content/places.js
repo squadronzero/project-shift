@@ -2,7 +2,7 @@
 // box = [west, south, east, north] in degrees. Keep each side under 30 degrees.
 // The first ten are SHIFT's tested regions (D18): their numbers are on the Validation page.
 const PLACES = [
-  { id: 'bangladesh', name: 'Bangladesh', box: [88.0, 20.5, 92.7, 26.7], tested: true },
+  { id: 'bangladesh', name: 'Area around Bangladesh', box: [88.0, 20.5, 92.7, 26.7], tested: true },
   { id: 'africa_savanna', name: 'Central African savanna', box: [15, 4, 30, 12], tested: true },
   { id: 'australia_savanna', name: 'Northern Australia', box: [129, -17, 138, -11], tested: true },
   { id: 'amazon_arc', name: 'Amazon deforestation arc', box: [-64, -13, -52, -7], tested: true },

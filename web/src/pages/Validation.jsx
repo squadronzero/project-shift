@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { csv, json } from '../lib/data.js';
 
-export const REGION_NAMES = { global: 'Whole world', bangladesh: 'Bangladesh', africa_savanna: 'Central African savanna',
+export const REGION_NAMES = { global: 'Whole world', bangladesh: 'Area around Bangladesh', africa_savanna: 'Central African savanna',
   australia_savanna: 'Northern Australia', amazon_arc: 'Amazon deforestation arc', siberia_boreal: 'Siberian boreal forest',
   iberia_med: 'Iberian Peninsula', punjab_crop: 'Punjab crop burning', kalimantan_peat: 'Kalimantan peatlands', java_volcanic: 'Java',
   florida: 'Florida' };
