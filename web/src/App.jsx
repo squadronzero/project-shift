@@ -14,7 +14,7 @@ import { recentFreshness, recentStatus } from './lib/recent.js';
 const VIEWS = Object.keys(T.views);
 
 export default function App() {
-  const [theme, mode, setMode] = useTheme();
+  const [theme] = useTheme();   // dark only in this lab variant
   const [{ view, params }] = useState(() => { const h = readHash(); return { view: VIEWS.includes(h.view) ? h.view : 'explore', params: h.params }; });
   const [current, setCurrent] = useState(view);
   const [meta, setMeta] = useState(null);
@@ -39,11 +39,6 @@ export default function App() {
           {meta && <span className="badge">{T.dataTo(fmtDay(dateOf(meta, lastDataDay(meta))))}</span>}
           {recent?.latest_detection_utc && <span className={recentFreshness(recent)?.stale ? 'badge warn' : 'badge'}>{T.recentTo(recent.latest_detection_utc,
             recentFreshness(recent)?.stale)}</span>}
-          <label className="theme-pick">{T.theme.label}
-            <select value={mode} onChange={(e) => setMode(e.target.value)}>
-              {['system', 'light', 'dark'].map((m) => <option key={m} value={m}>{T.theme[m]}</option>)}
-            </select>
-          </label>
         </div>
         <nav aria-label="Views">
           {VIEWS.map((id) => (
