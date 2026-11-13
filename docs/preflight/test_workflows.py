@@ -28,6 +28,7 @@ def test_the_firms_key_reaches_one_step_only_and_never_the_deploy_job():
                 if "NASA_FIRMS_MAP_KEY" in str(s.get("env", {}))]
     assert with_key == ["Recent detections, new fetch (the FIRMS key is given to this step only)"]
     assert "secrets." not in str(w["jobs"]["deploy"])
+    assert "NASA_FIRMS_MAP_KEY" not in str(w["jobs"]["deploy-cloudflare"])
     trig = w.get("on", w.get(True))                                           # PyYAML reads "on" as True
     assert "pull_request" not in trig and "pull_request_target" not in trig
 
@@ -46,3 +47,20 @@ def test_tests_workflow_runs_the_scientific_baseline_check_first():
     i = next(k for k, r in enumerate(runs) if "verify_baseline.py" in r)
     assert "--update" not in runs[i] and "baseline_manifest" not in " ".join(runs)   # never rewrites the baseline
     assert i <= 1                                                              # right after checkout
+
+
+def test_cloudflare_backup_job_cannot_write_runs_no_project_code_and_scopes_its_token():
+    """Backup copy on Cloudflare Pages (13 Nov): uploads the build job's artifact as it is."""
+    w = load("pages.yml")
+    job = w["jobs"]["deploy-cloudflare"]
+    assert job["needs"] == "build"
+    assert job["permissions"] == {"contents": "read"}                         # no GitHub write at all
+    steps = job["steps"]
+    assert not any("actions/checkout" in s.get("uses", "") for s in steps)     # runs no project code
+    with_token = [s.get("name") for s in steps if "secrets." in str(s)]
+    assert with_token == ["Create the Cloudflare Pages project once (an existing project is left as it is)",
+                          "Upload to Cloudflare Pages"]
+    for s in steps:
+        if "secrets." in str(s):
+            assert set(s["env"]) == {"CLOUDFLARE_API_TOKEN", "CLOUDFLARE_ACCOUNT_ID"}
+    assert "secrets." not in str(w["jobs"]["build"]).replace("secrets.NASA_FIRMS_MAP_KEY", "")
