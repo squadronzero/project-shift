@@ -221,6 +221,9 @@ const T = {
   loadError: 'The fire data could not be loaded. If you opened the file directly, serve the folder instead (see Method and data).',
   lede: (u, c, b0, b1, gaps) => `${u} unusual and ${c} critical months since ${b0}, judged against this area's own ${b0} to ${b1} normal.`
     + (gaps > 0 ? ` ${gaps} days had no satellite data and are shown as gaps, not as quiet days.` : ''),
+  // Areas with very little fire (components/quiet.js): the month classes are not summarised.
+  ledeQuiet: (normalYear, min, gaps) => `Too little fire here to class months reliably: a normal year has about ${Math.round(normalYear)} hotspots, and the classes need at least ${min}.`
+    + (gaps > 0 ? ` ${gaps} days had no satellite data and are shown as gaps, not as quiet days.` : ''),
 
   headings: {
     now: 'Now against the past',
@@ -347,6 +350,7 @@ const T = {
     cloudTip: 'Cloudier than 90% of years here: some fire may have been hidden by cloud.',
     cloudUntil: (ym) => `Cloud data reaches ${ym}; later months carry no cloud flag.`,
     classMeaning: 'Unusual and Critical mean statistically extreme for this place and month, judged against its own normal. They are not fire danger ratings or emergency warnings.',
+    quietNote: 'Too little fire here: one or two hotspots can make a month look Unusual or Critical, so read these colours as noise, not as signals.',
   },
   trend: {
     label: (m) => `Monthly ${m}, with the 95% range of the MODIS years (conversion error only, not a guaranteed bound)`,

@@ -18,6 +18,7 @@ import Compare from '../components/Compare.jsx';
 import WeatherContext from '../weather/WeatherContext.jsx';
 import Season from '../components/Season.jsx';
 import Downloads from '../components/Downloads.jsx';
+import { QUIET_MIN_HOTSPOTS_PER_YEAR, isQuietArea, normalYearHotspots } from '../components/quiet.js';
 import { MAX_TILES, areaSeries, dateOf, iso, json, lastDataDay, monthLayer, tilesOfCells, dayIndex, zoneMonth } from '../lib/data.js';
 import { IMAGERY_FIRST_DAY, cellInfo, days_in_month, imagery } from '../lib/geo.js';
 import { COUNTRIES, areaFromSpec, boxArea, countryArea, pointArea, presetArea } from '../lib/area.js';
@@ -183,6 +184,9 @@ export default function Explore({ meta, theme, params }) {
   }, [meta, area, tileCount]);
 
   const mon = useMemo(() => (series ? monthly(meta, series, variable, cloud) : null), [meta, series, variable, cloud]);
+  // Quiet areas are judged on hotspots whichever measure is shown (judging audit P1, 14 Nov).
+  const monCells = useMemo(() => (series ? (variable === 'cells' ? mon : monthly(meta, series, 'cells')) : null), [meta, series, variable, mon]);
+  const quiet = monCells ? isQuietArea(monCells) : false;
   const range = useMemo(() => (series && unc ? areaRange(unc, series.fineW, variable) : null), [series, unc, variable]);
   const sea = useMemo(() => (series ? season(meta, series, variable) : null), [meta, series, variable]);
   const win = useMemo(() => {
@@ -399,7 +403,9 @@ export default function Explore({ meta, theme, params }) {
         {!loading && series && series.tiles === 0 && <p className="muted">{T.noFire}</p>}
         {!loading && series && mon && series.tiles > 0 && (
           <>
-            <p className="lede">{T.lede(totals.unusual, totals.critical, mon.baseline[0], mon.baseline[1], totals.nodataDays)}</p>
+            <p className="lede">{quiet
+              ? T.ledeQuiet(normalYearHotspots(monCells), QUIET_MIN_HOTSPOTS_PER_YEAR, totals.nodataDays)
+              : T.lede(totals.unusual, totals.critical, mon.baseline[0], mon.baseline[1], totals.nodataDays)}</p>
 
             <ChartCard title={T.headings.now} file={file('compare')} theme={theme} imageTitle={`${area.name}: ${mLabel.toLowerCase()}, same dates every year`}>
               <Compare meta={meta} cmp={cmp} variable={variable} theme={theme} mode={cmpMode} setMode={setCmpMode} monthShare={monthShare}
@@ -417,7 +423,7 @@ export default function Explore({ meta, theme, params }) {
             </ChartCard>
 
             <ChartCard title={T.headings.months} file={file('months')} theme={theme} imageTitle={`${area.name}: each month against its normal (${mLabel.toLowerCase()})`}
-              note={T.monthGrid.classMeaning}>
+              note={quiet ? `${T.monthGrid.quietNote} ${T.monthGrid.classMeaning}` : T.monthGrid.classMeaning}>
               <MonthGrid monthly={mon} variable={variable} theme={theme} falseAlarm={falseAlarm} recordEnd={fmtDay(dateOf(meta, lastK))} />
             </ChartCard>
 

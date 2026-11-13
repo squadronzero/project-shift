@@ -30,7 +30,7 @@ export default function Method({ meta }) {
           (median, difference and rank), plus rain in the 60 days before. UTC days, the mean of up to nine land points spread across the area (points over water are left out).
           The rules were written down before the data were fetched (context/power_rules.json). Weather is context only: it is
           never used in the harmonised record, the month classes or any score, and it does not show why fires burned.</li>
-        <li><b>Each month against its normal:</b> the z score of log(1 + value) against the same month of the baseline years. Below -1 is low, up to 1 normal, up to 2 unusual, 2 and above critical.</li>
+        <li><b>Each month against its normal:</b> the z score of log(1 + value) against the same month of the baseline years. Below -1 is low, up to 1 normal, up to 2 unusual, 2 and above critical. Where a normal year has fewer than 60 hotspots, one or two detections can make a month look critical, so the page does not summarise the classes for such areas and marks their colours as noise.</li>
       </ul>
       <h3>What to keep in mind</h3>
       <ul>
