@@ -38,3 +38,7 @@ test('footer placement: after the long pages, at the end of the analysis column 
   assert.match(explore, /\{footer\}\n      <\/section>\n    <\/main>/);
   assert.doesNotMatch(css, /\.sitefooter \{[^}]*position: (fixed|absolute|sticky)/);
 });
+
+test('the footer contains its own hidden text, so it cannot stretch the Explore page (blank space, 14 Nov)', () => {
+  assert.match(css, /\.sitefooter \{ position: relative;/);
+});

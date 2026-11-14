@@ -680,7 +680,9 @@ html.fs-lock, html.fs-lock body { overflow: hidden; }
 @media print { .fs-enter, .fs-bar, .fs-inspector { display: none !important; } }
 
 /* ---------------------------------------------------------------- site footer (14 Nov) */
-.sitefooter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px;
+/* position: relative keeps its screen-reader-only text inside the footer. Without it that text was placed against the page,
+   at the footer's spot deep in the scrolling analysis column, and made the whole Explore page ~3300 px tall (blank space). */
+.sitefooter { position: relative; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px;
   margin-top: auto; padding: 16px 24px 20px; border-top: 1px solid var(--rule); background: var(--header-bg); font-size: 13px; color: var(--muted); }
 .sitefooter p { margin: 0; }
 .sf-team { color: var(--ink); font-weight: 650; font-size: 14px; }
