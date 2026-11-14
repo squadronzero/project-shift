@@ -55,10 +55,28 @@ const T = {
   unitsLong: { cells: 'hotspots (cell-days)', frp: 'summed daily FRP (MW)' },
   unitsNote: { cells: '', frp: 'Summed daily fire radiative power: an index of intense burning, not an amount of energy.' },
   hotspotDefinition: 'A hotspot is a 0.05° grid cell (about 5 km) with fire on a day. Counting cells instead of raw '
-    + 'detections stops the finer VIIRS pixels from inflating the count. Fire power is the fire radiative power (MW) of the '
+    + 'detections means the finer VIIRS pixels inflate the count much less. Fire power is the fire radiative power (MW) of the '
     + 'detections, added up per day. Monthly and yearly fire power add those daily sums together, so they are an index of how '
     + 'much intense burning was seen, not an amount of energy. Neither number counts separate fires.',
   whatIsHotspot: 'What is a hotspot?',
+  // the hotspot card on Explore (14 Nov): the same definition as hotspotDefinition, in three short parts
+  hotspot: {
+    subClosed: 'What S.H.I.F.T counts, in three short parts',
+    subOpen: 'The measurement behind the numbers',
+    more: 'Learn more',
+    less: 'Show less',
+    parts: [
+      ['What is counted?', 'A 0.05° grid cell (about 5 km across) with at least one fire detection on a day counts once that day: one '
+        + 'hotspot cell-day, however many detections fall inside it. The hotspot numbers on this page add up those cell-days.'],
+      ['Why count cells, not detections?', 'VIIRS pixels are 375 m across and MODIS pixels about 1 km, so one fire can give VIIRS '
+        + 'several detections where MODIS gives one or two. Counting cells means the finer VIIRS pixels inflate the count much less. '
+        + 'It does not remove the difference completely: the harmonisation puts the older MODIS years on the VIIRS scale.'],
+      ['What is fire power?', 'The fire radiative power (MW) of the detections, added up per cell and day. Monthly and yearly fire power '
+        + 'add those daily sums together, so they are an index of how much intense burning was seen, not an amount of energy.'],
+    ],
+    limit: 'Neither number counts separate fires: one large fire covers many cells, and one cell can hold several small fires.',
+    diagram: 'Illustration, not real data. Each square is a grid cell, not a fire.',
+  },
 
   // ---------------------------------------------------------------- choosing the area
   area: {

@@ -11,6 +11,7 @@ import RecentPanel from '../components/RecentPanel.jsx';
 import RecentLegend from '../components/RecentLegend.jsx';
 import SearchBar from '../components/SearchBar.jsx';
 import FsInspector from '../components/FsInspector.jsx';
+import HotspotCard from '../components/HotspotCard.jsx';
 import { useFullscreen } from '../components/fullscreen.js';
 import { cleanRing, polygonArea, polygonFromSpec } from '../components/polygon.js';
 import ChartCard from '../components/ChartCard.jsx';
@@ -475,7 +476,7 @@ export default function Explore({ meta, theme, params, footer = null }) {
             {['cells', 'frp'].map((v) => <button key={v} className={variable === v ? 'on' : ''} aria-pressed={variable === v}
               onClick={() => setVariable(v)}>{T.measures[v]}</button>)}
           </div>
-          <details className="define"><summary>{T.whatIsHotspot}</summary><p>{T.hotspotDefinition}</p></details>
+          <HotspotCard />
         </div>
         {error && <p className="notice" role="alert">{error}</p>}
 
