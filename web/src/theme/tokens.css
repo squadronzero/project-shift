@@ -13,13 +13,20 @@
    ===================================================================================== */
 
 :root {
-  /* ---------- type */
-  --font-body: 'Archivo Variable', 'Archivo', system-ui, sans-serif;  /* font files: src/theme/fonts.js */
-  --font-heading: var(--font-body);
-  --font-size-base: 15px;
-  --font-size-small: 13px;
-  --heading-weight: 760;
-  --heading-stretch: 112%;         /* Archivo is a variable-width font; set 100% for other fonts */
+  /* ---------- type (UI Trial 1.0, 14 Nov; font files: src/theme/fonts.js) */
+  --font-ui: 'Space Grotesk Variable', 'Space Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-editorial: 'Bodoni Moda Variable', 'Bodoni Moda', Didot, 'Bodoni 72', Georgia, serif;   /* large page headings only */
+  --font-data: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;      /* coordinates, UTC, readouts */
+  --font-brand: 'Orbitron Variable', 'Orbitron', var(--font-ui);                                 /* the S.H.I.F.T wordmark only */
+  --font-body: var(--font-ui);     /* kept: the charts and the image export read this name */
+  --font-heading: var(--font-ui);
+  --font-size-base: 16px;
+  --font-size-small: 13.5px;
+  --line-body: 1.6;
+  --heading-weight: 700;
+  --heading-stretch: 100%;         /* none of the fonts has a width axis */
+  --editorial-weight: 600;         /* Bodoni Moda: 600 keeps the hairlines visible on the dark canvas */
+  --editorial-size: clamp(30px, 1.4vw + 22px, 44px);
   --brand-size: 30px;
 
   /* ---------- shape */
@@ -35,6 +42,9 @@
   --accent: #B4461F;               /* the one strong colour: active tab, highlights */
   --on-accent: #FFFFFF;            /* text on top of --accent */
   --focus: #2F5DA8;                /* keyboard focus ring */
+  --body: var(--ink);              /* paragraph text (the dark theme uses a softer grey than headings) */
+  --link: #0B5CAD;                 /* links and secondary interactive emphasis */
+  --control-line: #8C9A9C;         /* outlines of inputs, selects and toggles (3:1 or more) */
   --header-bg: var(--surface);
   --header-ink: var(--ink);
 
@@ -95,14 +105,20 @@
 
 /* ---------- dark theme: same names, dark values */
 :root[data-theme='dark'] {
-  --surface: #121A22;
-  --mist: #0D141B;
-  --ink: #E6ECEF;
-  --muted: #97A3AC;
-  --rule: #2A3843;
-  --accent: #F7A26E;
-  --on-accent: #121A22;
-  --focus: #7EA6E6;
+  /* Space Observatory palette (UI Trial 1.0, 14 Nov). The seven approved colours are exact; the derived
+     ones say what they are derived for. The map and chart colours below are NOT part of this palette and
+     are unchanged on purpose (they carry scientific meaning). */
+  --mist: #090D12;                 /* approved: canvas (page background) */
+  --surface: #151D26;              /* approved: panel surfaces */
+  --ink: #F1F4F7;                  /* approved: headings and bright text (15.4:1 on panels) */
+  --body: #BBC8D2;                 /* approved: body text (9.96:1 on panels) */
+  --rule: #34414D;                 /* approved: subtle borders and dividers (decorative, 1.6:1) */
+  --accent: #FFAD72;               /* approved: interactive warm accent (9.3:1 on panels) */
+  --link: #86C9FF;                 /* approved: links and secondary interactive emphasis (9.6:1) */
+  --muted: #8FA0AD;                /* derived: secondary text, between body and border (6.3:1 on panels) */
+  --control-line: #5F707E;         /* derived: input and toggle outlines, 3.3:1 on panels (WCAG non-text) */
+  --on-accent: #090D12;            /* derived: text on the accent = the canvas (9.3:1) */
+  --focus: #86C9FF;                /* derived: focus ring = the link colour */
   --header-bg: var(--surface);
   --header-ink: var(--ink);
 
@@ -142,7 +158,7 @@
 
   --chart-line: #E6ECEF;
   --chart-band: rgba(230, 236, 239, 0.16);
-  --chart-highlight: #F7A26E;
+  --chart-highlight: #F7A26E;             /* chart colour, kept separate from the interface --accent */
   --nodata-bg: #1A242D;
   --nodata-line: #55636E;
   --cloud-mark: #7EA6E6;

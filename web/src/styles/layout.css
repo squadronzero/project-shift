@@ -9,16 +9,16 @@
 html, body, #root { height: 100%; margin: 0; }
 body {
   background: var(--mist);
-  color: var(--ink);
+  color: var(--body);
   font-family: var(--font-body);
   font-size: var(--font-size-base);
-  line-height: 1.5;
+  line-height: var(--line-body);
   font-variant-numeric: tabular-nums;
   -webkit-font-smoothing: antialiased;
 }
-a { color: inherit; text-underline-offset: 2px; }
+a { color: var(--link); text-underline-offset: 2px; }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-h1, h2, h3 { font-family: var(--font-heading); }
+h1, h2, h3, h4 { font-family: var(--font-heading); color: var(--ink); }
 
 .app { display: flex; flex-direction: column; min-height: 100%; }
 .app:has(.explore) { height: 100vh; }
@@ -206,7 +206,7 @@ select, input, .action, .seg button, .link {
   font: inherit; font-size: 14px; color: var(--ink);
 }
 select, input {
-  background: var(--surface); border: 1px solid var(--rule); border-radius: var(--radius); padding: 6px 8px; max-width: 260px;
+  background: var(--surface); border: 1px solid var(--control-line); border-radius: var(--radius); padding: 6px 8px; max-width: 260px;
 }
 .picker { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
 .action {
@@ -215,8 +215,8 @@ select, input {
 }
 .action:disabled { opacity: 0.6; cursor: wait; }
 .action.on { background: var(--accent); color: var(--on-accent); }
-.action.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--rule); }
-.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; width: fit-content; }
+.action.ghost { background: var(--surface); color: var(--ink); border: 1px solid var(--control-line); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--control-line); border-radius: var(--radius); overflow: hidden; width: fit-content; }
 .seg button { background: var(--surface); border: 0; padding: 6px 12px; cursor: pointer; color: var(--muted); }
 .seg button + button { border-left: 1px solid var(--rule); }
 .seg button.on { background: var(--mist); color: var(--ink); font-weight: 650; }
@@ -229,7 +229,7 @@ select, input {
 }
 .link { background: none; border: 0; padding: 0; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 
-.lede { font-size: 16px; max-width: 62ch; margin: 4px 0 0; }
+.lede { font-size: 17px; max-width: 68ch; margin: 4px 0 0; }
 .small { font-size: var(--font-size-small); color: var(--muted); max-width: 70ch; }
 .muted { color: var(--muted); }
 .notice { border-left: 3px solid var(--accent); padding: 6px 10px; background: var(--mist); font-size: 14px; }
@@ -903,3 +903,28 @@ html.fs-lock, html.fs-lock body { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .hs-chev { transition: none; } }
 @media (max-width: 420px) { .hs-sub { display: none; } .hs-card > summary { gap: 10px; padding: 10px 12px; } }
 @media print { .hs-card { display: none; } }
+
+/* ---------------------------------------------------------------- UI Trial 1.0 typography (14 Nov)
+   One place for which font goes where. Space Grotesk is the default (body, controls, small and medium headings).
+   Bodoni Moda only for the large editorial page headings. IBM Plex Mono only for coordinates, UTC times, satellite
+   ids and numeric readouts. Orbitron only for the S.H.I.F.T wordmark. */
+.brand h1 { font-family: var(--font-brand); font-weight: 800; font-stretch: normal; letter-spacing: 0.03em; }
+.page h2, .story h2, .mobile-summary h2, .v-hero h2, .m-hero h2 {
+  font-family: var(--font-editorial); font-weight: var(--editorial-weight); font-stretch: normal; letter-spacing: -0.005em; line-height: 1.12;
+}
+.page h2, .v-hero h2, .m-hero h2 { font-size: var(--editorial-size); }
+.story h2 { font-size: 30px; }
+.mobile-summary h2 { font-size: 24px; }
+.page h3, .story h3, .card h3, .v-sec h3, .m-sec h3 { font-family: var(--font-ui); }
+.badge, code, kbd,
+.cellpanel dd, .v-card-value b, .v-hb-val, .v-div-val, .v-gb-val, .v-detail dd, .validation .coverage > b,
+.validation .tablewrap td:not(:first-child), .m-src p a, .m-sensor dd:last-of-type, .hs-n {
+  font-family: var(--font-data); font-variant-numeric: tabular-nums;
+}
+.cellpanel dd .small, .cellpanel dd.small { font-family: var(--font-ui); }
+.badge { font-size: 12px; letter-spacing: 0; }
+.v-card-value b { font-size: 26px; font-weight: 500; letter-spacing: -0.01em; }
+/* MapLibre's own controls, credits and popups follow the site font (its stylesheet sets Helvetica) */
+.mapstage .maplibregl-map, .mapstage .maplibregl-ctrl-attrib, .maplibregl-popup .maplibregl-popup-content { font-family: var(--font-ui); }   /* two classes: MapLibre's stylesheet loads after this one */
+#maptools { scroll-margin: 12px; }   /* the phone sheet used to stop 3 px below the window edge */
+@media (max-width: 900px) { .brand h1 { font-size: 24px; } .story h2 { font-size: 26px; } }
