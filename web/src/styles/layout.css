@@ -609,6 +609,7 @@ html.fs-lock, html.fs-lock body { overflow: hidden; }
 .fs-title span { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 34ch; }
 .fs-search { flex: 1 1 280px; min-width: 0; }
 .fs-search .searcharea { margin: 0; }
+.fs-search .searchhelp { display: none; }   /* fullscreen keeps the bar to one line: the coordinate formats stay on the dashboard and in the error messages */
 /* the research inspector: a side panel beside the map (the map keeps its own box, nothing covers it) */
 .fs-inspector { flex: none; width: min(380px, 38vw); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; box-sizing: border-box;
   padding: 12px 16px 16px; background: var(--surface); border-left: 1px solid var(--rule); font-size: 13.5px; }
@@ -639,7 +640,6 @@ html.fs-lock, html.fs-lock body { overflow: hidden; }
   .fs-bar { padding: 6px 10px; gap: 6px 8px; }
   .fs-title span { display: none; }
   .fs-search { flex-basis: 100%; order: 3; }
-  .fs-search .searchhelp { display: none; }      /* the coordinate formats stay on the dashboard and in the error messages */
   .fs-inspector { position: absolute; left: 0; right: 0; bottom: 0; z-index: 6; width: auto; max-height: 55%;
     border-left: 0; border-top: 1px solid var(--rule); border-radius: 12px 12px 0 0; box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.35); }
   .fs-ins-area .facts.compact { grid-template-columns: repeat(3, minmax(0, 1fr)); }
