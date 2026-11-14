@@ -32,7 +32,7 @@ import { slug } from '../lib/downloads.js';
 import { fmt } from '../lib/format.js';
 import { writeHash } from '../lib/url.js';
 
-export default function Explore({ meta, theme, params }) {
+export default function Explore({ meta, theme, params, footer = null }) {
   const lastK = lastDataDay(meta);
   const lastIso = iso(meta, lastK);
   // the map opens on the newest month of the record, the same month the headline compares (14 Nov, judging audit:
@@ -531,6 +531,7 @@ export default function Explore({ meta, theme, params }) {
           </>
         )}
         </>}
+        {footer}
       </section>
     </main>
   );

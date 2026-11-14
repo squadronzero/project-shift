@@ -28,11 +28,13 @@ h1, h2, h3 { font-family: var(--font-heading); }
   display: flex; align-items: flex-end; justify-content: space-between; gap: 8px 24px; flex-wrap: wrap;
   padding: 14px 24px 0; background: var(--header-bg); color: var(--header-ink); border-bottom: 1px solid var(--rule);
 }
-.brand { display: flex; align-items: baseline; gap: 16px; padding-bottom: 12px; flex-wrap: wrap; }
+/* the brand lockup (14 Nov): name and tagline centred on one line, a thin rule between them, the tagline secondary.
+   Less width stretch and a little tracking so the periods read as part of the name, not as gaps. */
+.brand { display: flex; align-items: center; gap: 4px 16px; padding-bottom: 12px; flex-wrap: wrap; }
 .brand h1 {
-  margin: 0; font-size: var(--brand-size); line-height: 1; font-weight: 820; font-stretch: 125%; letter-spacing: -0.01em;
+  margin: 0; font-size: var(--brand-size); line-height: 1; font-weight: 800; font-stretch: 108%; letter-spacing: 0.015em; white-space: nowrap;
 }
-.brand p { margin: 0; color: var(--muted); font-size: 14px; max-width: 46ch; }
+.brand p { margin: 0; padding-left: 16px; border-left: 1px solid var(--rule); color: var(--muted); font-size: 13.5px; line-height: 1.35; max-width: 40ch; }
 .top-right { display: flex; align-items: center; gap: 14px; padding-bottom: 12px; margin-left: auto; }
 .badge { font-size: var(--font-size-small); padding: 3px 9px; border: 1px solid var(--rule); border-radius: 999px; color: var(--muted); white-space: nowrap; }
 /* the recent-detections pill when the data is not current (12 Nov): it reads as a warning, not as plain grey */
@@ -313,8 +315,9 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
      on every phone, the page became wider than the screen and Android zoomed out (the blank strip). */
   .top-right { flex-wrap: wrap; gap: 6px 8px; margin-left: 0; width: 100%; padding-bottom: 8px; }
   .badge { white-space: normal; font-size: 12px; padding: 2px 8px; }
-  .brand { padding-bottom: 6px; gap: 4px 12px; }
-  .brand p { font-size: 13px; }
+  /* tablets and phones: the tagline goes under the name, left-aligned with it, no rule */
+  .brand { flex-direction: column; align-items: flex-start; padding-bottom: 6px; gap: 4px; }
+  .brand p { font-size: 13px; padding-left: 0; border-left: 0; max-width: 72ch; }
   .theme-pick { font-size: 12px; }
   /* the four tabs stay on one row and scroll sideways (12 Nov); before, the last one dropped onto its own line */
   nav { flex-wrap: nowrap; gap: 0 2px; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
@@ -355,7 +358,7 @@ code { font-size: 13px; background: var(--mist); padding: 1px 4px; border-radius
   .mapbar { padding: 8px 16px; gap: 6px 14px; }
   .story { max-height: none; overflow: visible; }
   .app:has(.explore) { height: auto; }
-  .brand h1 { font-size: 28px; }
+  .brand h1 { font-size: 26px; }
   .weather-table { font-size: 12px; }
   .weather-table td:not(:first-child), .weather-table th:not(:first-child) { padding-left: 6px; }
 }
@@ -675,3 +678,23 @@ html.fs-lock, html.fs-lock body { overflow: hidden; }
   .fs-notes summary { min-height: 36px; display: flex; align-items: center; }
 }
 @media print { .fs-enter, .fs-bar, .fs-inspector { display: none !important; } }
+
+/* ---------------------------------------------------------------- site footer (14 Nov) */
+.sitefooter { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 24px;
+  margin-top: auto; padding: 16px 24px 20px; border-top: 1px solid var(--rule); background: var(--header-bg); font-size: 13px; color: var(--muted); }
+.sitefooter p { margin: 0; }
+.sf-team { color: var(--ink); font-weight: 650; font-size: 14px; }
+.sf-event { margin-top: 2px !important; max-width: 62ch; line-height: 1.4; }
+.sf-links { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.sf-links a, .sf-link { color: var(--ink); font: inherit; text-decoration: underline; text-decoration-color: var(--rule); text-underline-offset: 3px; }
+.sf-link { background: none; border: 0; padding: 0; cursor: pointer; }
+.sf-links a:hover, .sf-link:hover { text-decoration-color: currentColor; }
+/* on Explore the footer closes the analysis column: same look, no full-width bar */
+.story .sitefooter { margin: 32px -24px -40px; padding: 16px 24px 20px; }
+@media (max-width: 900px) {
+  .sitefooter { flex-direction: column; align-items: flex-start; padding: 14px 16px 18px; }
+  .story .sitefooter { margin: 28px -16px -40px; padding: 14px 16px 18px; }
+  .sf-links { flex-direction: column; gap: 0; }
+  .sf-links a, .sf-link { display: inline-flex; align-items: center; min-height: 44px; }
+}
+@media print { .sitefooter { display: none; } }

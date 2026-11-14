@@ -20,7 +20,7 @@
   --font-size-small: 13px;
   --heading-weight: 760;
   --heading-stretch: 112%;         /* Archivo is a variable-width font; set 100% for other fonts */
-  --brand-size: 34px;
+  --brand-size: 30px;
 
   /* ---------- shape */
   --radius: 6px;

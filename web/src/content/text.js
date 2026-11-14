@@ -25,6 +25,16 @@ export const fmtDay = (d) => fmtDate(d.toISOString().slice(0, 10));
 const T = {
   brand: 'S.H.I.F.T',
   brandAction: 'S.H.I.F.T: home and refresh',
+  // the site footer (14 Nov): authorship, the event, and that NASA did not make or endorse it
+  footer: {
+    credit: 'Created by Team Squadron Zero',
+    event: 'Developed for the NASA Space Apps Challenge 2026. An independent project, not created, approved or endorsed by NASA.',
+    linksLabel: 'About S.H.I.F.T',
+    github: 'Source code on GitHub',
+    newTab: '(opens in a new tab)',
+    method: 'Method and data',
+    credits: 'Data credits and references',
+  },
   brandOffline: 'Could not reach the website to check for newer published data. Showing what is already loaded.',
   brandNewer: (record, recent) => `Newer published data loaded: ${[record && 'the harmonised record', recent && 'the recent detections'].filter(Boolean).join(' and ')}.`,
   tagline: 'One fire record from two generations of NASA satellites, from 2002 to the latest data',
