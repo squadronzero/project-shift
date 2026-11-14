@@ -7,6 +7,7 @@ import Switch2012 from './pages/Switch2012.jsx';
 import Validation from './pages/Validation.jsx';
 import Method from './pages/Method.jsx';
 import { NavIcon } from './components/NavIcons.jsx';
+import SiteFooter from './components/SiteFooter.jsx';
 import { dateOf, json, lastDataDay } from './lib/data.js';
 
 import { readHash, writeHash } from './lib/url.js';
@@ -19,6 +20,19 @@ export default function App() {
   const [theme] = useTheme();   // dark only in this lab variant
   const [{ view, params }] = useState(() => { const h = readHash(); return { view: VIEWS.includes(h.view) ? h.view : 'explore', params: h.params }; });
   const [current, setCurrent] = useState(view);
+  // footer links: open a page and, after it has rendered, bring one of its sections into view
+  const [anchor, setAnchor] = useState(null);
+  const goTo = (v, id) => { setCurrent(v); setAnchor(id || null); if (!id) window.scrollTo(0, 0); };
+  useEffect(() => {
+    if (!anchor) return;
+    const el = document.getElementById(anchor);
+    if (el) {
+      el.scrollIntoView({ block: 'start' });
+      const h = el.querySelector('h2, h3');
+      if (h) { h.tabIndex = -1; h.focus({ preventScroll: true }); }
+    }
+    setAnchor(null);
+  }, [anchor, current]);
   const [meta, setMeta] = useState(null);
   const [recent, setRecent] = useState(null);
   const [recentDone, setRecentDone] = useState(false);
@@ -83,10 +97,13 @@ export default function App() {
 
       {brandNote && <p className="brandnote" role="status">{brandNote} <button type="button" className="linkbtn" onClick={() => setBrandNote(null)}>OK</button></p>}
       {error && <main className="page"><p className="notice" role="alert">{error}</p></main>}
-      {current === 'explore' && meta && <Explore key={exploreKey} meta={meta} theme={theme} params={openParams || (view === 'explore' && !exploreKey ? params : {})} />}
+      {current === 'explore' && meta && <Explore key={exploreKey} meta={meta} theme={theme} params={openParams || (view === 'explore' && !exploreKey ? params : {})}
+        footer={<SiteFooter onNav={goTo} />} />}
       {current === 'switch' && <Switch2012 theme={theme} />}
       {current === 'validation' && <Validation />}
       {current === 'method' && <Method meta={meta} onOpen={openExplore} />}
+      {/* the footer follows the long pages; on Explore it is at the end of the analysis column (never over the map) */}
+      {current !== 'explore' && <SiteFooter onNav={goTo} />}
     </div>
   );
 }
