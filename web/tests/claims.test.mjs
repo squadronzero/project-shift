@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 
 const read = (p) => readFileSync(new URL(p, import.meta.url), 'utf8');
-const validation = read('../src/pages/Validation.jsx');
+// the Validation page is split over Validation.jsx and src/pages/validation/* (14 Nov)
+const validation = [read('../src/pages/Validation.jsx'), read('../src/pages/validation/charts.jsx')].join('\n');
 // The Method page is split over Method.jsx and src/pages/method/*
 const method = [ '../src/pages/Method.jsx', ...readdirSync(new URL('../src/pages/method/', import.meta.url)).filter((f) => /\.jsx?$/.test(f)).sort().map((f) => `../src/pages/method/${f}`) ]
   .map((p) => readFileSync(new URL(p, import.meta.url), 'utf8')).join('\n');
