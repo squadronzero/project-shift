@@ -10,6 +10,8 @@ import CellPanel from '../components/CellPanel.jsx';
 import RecentPanel from '../components/RecentPanel.jsx';
 import RecentLegend from '../components/RecentLegend.jsx';
 import SearchBar from '../components/SearchBar.jsx';
+import FsInspector from '../components/FsInspector.jsx';
+import { useFullscreen } from '../components/fullscreen.js';
 import { cleanRing, polygonArea, polygonFromSpec } from '../components/polygon.js';
 import ChartCard from '../components/ChartCard.jsx';
 import Calendar, { calendarLegend } from '../components/Calendar.jsx';
@@ -87,6 +89,11 @@ export default function Explore({ meta, theme, params }) {
   const [resetKey, setResetKey] = useState(0);
   const [focusKey, setFocusKey] = useState(0);
   const [toolsOpen, setToolsOpen] = useState(false);   // map settings on phones: closed by default
+  // fullscreen (14 Nov): the same map side, made to fill the screen; the inspector is the optional second level
+  const mapsideRef = useRef(null);
+  const [inspector, setInspector] = useState(false);
+  const fs = useFullscreen(mapsideRef, { canEscape: () => !toolsOpen });
+  const inspecting = fs.full && inspector;
   useEffect(() => {                   // Escape closes the phone map settings and returns focus to their button
     if (!toolsOpen) return undefined;
     const onKey = (e) => { if (e.key === 'Escape') { setToolsOpen(false); document.querySelector('.maptools-toggle')?.focus(); } };
@@ -269,6 +276,14 @@ export default function Explore({ meta, theme, params }) {
   const file = (what) => `shift_${slug(area?.name || 'area')}_${what}`;
   const mLabel = T.measures[variable];
 
+  // one search bar: in the story column normally, in the fullscreen bar while fullscreen is on
+  const searchBar = <SearchBar area={area} setArea={pickArea} drawing={drawing} setDrawing={setDrawing} setError={setError}
+    draftCorners={draftCorners} drawCommand={drawCommand} />;
+  const ledeText = area && !loading && series && mon && series.tiles > 0 ? (quiet
+    ? T.ledeQuiet(normalYearHotspots(monCells), QUIET_MIN_HOTSPOTS_PER_YEAR, totals.nodataDays)
+    : T.lede(totals.unusual, totals.critical, mon.baseline[0], mon.baseline[1], totals.nodataDays)) : '';
+  const F = T.fullscreen;
+
   return (
     <main className="explore">
       {/* phones only (hidden by CSS above 900px): the result first. Same numbers as "Now against the past", not recomputed */}
@@ -288,7 +303,20 @@ export default function Explore({ meta, theme, params }) {
         {cmp?.target && <p className="small">{T.summary.periods(fmtDay(dateOf(meta, cmp.target.from)), fmtDay(dateOf(meta, cmp.target.to)),
           layerMode === 'recent' ? T.summary.mapRecent : T.summary.mapMonth(MONTHS_LONG[+month.slice(5, 7) - 1], month.slice(0, 4), month === lastMonth ? fmtDate(lastIso) : null))}</p>}
       </section>}
-      <section className="mapside">
+      <section ref={mapsideRef} className={fs.full ? `mapside fs fs-${fs.mode}` : 'mapside'}
+        {...(fs.full ? { role: 'region', 'aria-label': F.workspace(view) } : {})}>
+        {fs.full && <div className="fs-bar">
+          <p className="fs-title"><b>{T.brand}</b> <span>{F.workspace(view)}{area ? ` · ${area.name}` : ''}</span></p>
+          <div className="fs-search">{searchBar}</div>
+          <button type="button" className="fs-btn" aria-pressed={inspector} title={F.inspectorHint} onClick={() => setInspector((o) => !o)}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 5h16v14H4z M14 5v14 M16.5 9h1.5 M16.5 12h1.5 M16.5 15h1.5" fill="none" stroke="currentColor" strokeWidth="1.7" /></svg>
+            <span>{F.inspectorShort}</span><span className="visually-hidden"> ({F.inspector})</span></button>
+          <button type="button" className="fs-btn fs-exit" data-fs-first aria-label={F.exit(view)} title={F.exit(view)} onClick={() => fs.exit()}>
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M9 4v5H4 M15 4v5h5 M9 20v-5H4 M15 20v-5h5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            <span aria-hidden="true">{F.exitShort}</span></button>
+          {fs.mode === 'viewport' && <p className="visually-hidden" role="status">{F.windowNote}</p>}
+        </div>}
+        <div className="mapbody">
         <div className="mapstage">
         <MapBoundary onFail={() => setMapOk(false)}>
           <MapView key="map" theme={theme} fires={fires} notFire={notFire} showNotFire={showNotFire}
@@ -302,11 +330,13 @@ export default function Explore({ meta, theme, params }) {
             onStatus={(st) => { if (st === 'failed') setMapOk(false); else setMapNote(st === 'lost' ? T.map.contextLost : null); }}
             layerMode={layerMode} recentCells={layerMode === 'recent' ? rCells : null} recentPts={layerMode === 'recent' ? rPts : null}
             recentTip={recentTip} onViewChange={setRView}
-            onRecentPick={(p) => { setPicked(null); setRPicked({ ...p, lat: +p.lat, lon: +p.lon, frp: +p.frp, nf: +p.nf, minute: +p.minute }); }} />
+            onRecentPick={(p) => { setPicked(null); setRPicked({ ...p, lat: +p.lat, lon: +p.lon, frp: +p.frp, nf: +p.nf, minute: +p.minute }); }}
+            layoutKey={`${fs.mode}|${inspecting}`} />
         </MapBoundary>
 
         {mapOk && <>
         {/* Map View (14 Nov): one small button, always visible; the settings open in a temporary panel */}
+        <div className="maptop">
         <button type="button" className="maptools-toggle" aria-expanded={toolsOpen} aria-controls="maptools" aria-haspopup="dialog"
           onClick={() => setToolsOpen((o) => !o)}>
           <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M12 3 3 7.5l9 4.5 9-4.5L12 3z M3 12l9 4.5 9-4.5 M3 16.5 12 21l9-4.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>
@@ -314,11 +344,16 @@ export default function Explore({ meta, theme, params }) {
           <span className="viewnow">{T.map.viewNow(view === '3d' ? '3D' : '2D', T.recent.layers[layerMode], basemap === 'standard' ? '' : T.map.basemaps[basemap])}</span>
           <span aria-hidden="true">▾</span>
         </button>
+        {!fs.full && <button type="button" className="fs-enter" aria-label={F.enter(view)} title={F.enter(view)} aria-pressed="false"
+          onClick={(e) => { setToolsOpen(false); fs.enter(e.currentTarget); }}>
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9V4h5 M20 9V4h-5 M4 15v5h5 M20 15v5h-5" fill="none" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        </button>}
+        </div>
 
         {(mapNote || (layerMode === 'recent' && (rUpdating || rNote || rStatus === null))) && <p className="mapnote" role="status">
           {mapNote || (rUpdating ? T.recent.updating : rNote) || T.recent.unavailable}</p>}
-        {layerMode === 'record' && <CellPanel info={pickInfo} onClose={() => setPicked(null)} />}
-        {layerMode === 'recent' && <RecentPanel info={rInfo} onClose={() => setRPicked(null)}
+        {!inspecting && layerMode === 'record' && <CellPanel info={pickInfo} onClose={() => setPicked(null)} />}
+        {!inspecting && layerMode === 'recent' && <RecentPanel info={rInfo} onClose={() => setRPicked(null)}
           onHistory={() => { pickArea(pointArea(rPicked.lat, rPicked.lon, 50)); setRPicked(null); }} />}
         <details className="legendbox" open={legendOpen} onToggle={(e) => setLegendOpen(e.currentTarget.open)}>
           <summary>{T.map.legendToggle}</summary>
@@ -372,6 +407,13 @@ export default function Explore({ meta, theme, params }) {
         </div>
         </>}
         </div>
+        {inspecting && <FsInspector meta={meta} area={area} cmp={cmp} variable={variable} lede={ledeText} loading={loading}
+          layerMode={layerMode} pickInfo={pickInfo} onClosePick={() => setPicked(null)}
+          rInfo={rInfo} onCloseRecent={() => setRPicked(null)}
+          onHistory={() => { pickArea(pointArea(rPicked.lat, rPicked.lon, 50)); setRPicked(null); }}
+          onClose={() => setInspector(false)}
+          onBack={() => fs.exit(document.getElementById('results'))} />}
+        </div>
         <p className="visually-hidden" aria-live="polite">{mapSummary}</p>
 
         {layerMode === 'recent' ? <div className="mapbar">
@@ -417,14 +459,18 @@ export default function Explore({ meta, theme, params }) {
           </>}
         </div>}
         {/* what the map shows (12 Nov): these sentences used to sit inside the legend and covered the map */}
-        {mapOk && layerMode === 'record' && <p className="mapnotes small">{T.map.legendUnit[variable]}. {T.map.legendScale} {T.map.legendSupport}
-          {showGaps ? ` ${T.map.legendGaps}` : ''}{img ? ` ${img.label}. ${T.map.imageryNote}` : ''}</p>}
+        {mapOk && layerMode === 'record' && (() => {
+          const notes = <p className="mapnotes small">{T.map.legendUnit[variable]}. {T.map.legendScale} {T.map.legendSupport}
+            {showGaps ? ` ${T.map.legendGaps}` : ''}{img ? ` ${img.label}. ${T.map.imageryNote}` : ''}</p>;
+          // fullscreen: the same sentences behind "About this map" (open on wide screens), so phones keep room for the map
+          return fs.full ? <details className="fs-notes" open={window.matchMedia?.('(min-width: 701px)').matches}>
+            <summary>{F.aboutMap}</summary>{notes}</details> : notes;
+        })()}
       </section>
 
       <section className="story" id="results" tabIndex={-1} aria-live="polite">
         <div className="controls">
-          <SearchBar area={area} setArea={pickArea} drawing={drawing} setDrawing={setDrawing} setError={setError}
-            draftCorners={draftCorners} drawCommand={drawCommand} />
+          {!fs.full && searchBar}
           <div className="seg" role="group" aria-label="Measure">
             {['cells', 'frp'].map((v) => <button key={v} className={variable === v ? 'on' : ''} aria-pressed={variable === v}
               onClick={() => setVariable(v)}>{T.measures[v]}</button>)}

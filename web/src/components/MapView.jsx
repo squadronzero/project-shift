@@ -71,7 +71,7 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
   onPolygon, onDraft, drawCmd = null,
   variable = 'frp', view = '2d', basemap = 'standard', imageryDay = null, gaps = null, showGaps = false,
   picked = null, onPick, resetKey = 0, focusKey = 0, reducedMotion = false, onImageryError, onStatus,
-  layerMode = 'record', recentCells = null, recentPts = null, recentTip, onRecentPick, onViewChange }) {
+  layerMode = 'record', recentCells = null, recentPts = null, recentTip, onRecentPick, onViewChange, layoutKey = 0 }) {
   const el = useRef(null);
   const map = useRef(null);
   const ready = useRef(false);
@@ -284,6 +284,8 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
     m.on('mousemove', move); m.on('touchmove', move);
     m.on('mouseup', up); m.on('touchend', up);
     map.current = m;
+    // browser tests only: they set window.__SHIFT_TEST__ before the page loads, to read the camera. Off for visitors.
+    if (window.__SHIFT_TEST__) window.__shiftMap = m;
     if (window.__SHIFT_TEST__) { window.__shiftMap = m; window.__shiftGeo = geo; }   // browser tests only (set before the page loads)
     return () => { ready.current = false; map.current = null; geo.stop(); tip.remove(); m.remove(); };
   }, []);  // eslint-disable-line react-hooks/exhaustive-deps
@@ -382,6 +384,14 @@ export default function MapView({ theme, fires, notFire, showNotFire, area, draw
     whenReady((m) => m.fitBounds([[area.box.w, area.box.s], [area.box.e, area.box.n]], { padding: 40, maxZoom: 7, duration: motion(600) }));
   }, [focusKey]);  // eslint-disable-line react-hooks/exhaustive-deps
 
+  // the map's box changed size (fullscreen on or off, the inspector opened): MapLibre watches its container too, but
+  // resize once more after the layout settles so the canvas, the pointer and the cells always line up. Same map, same camera.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !layoutKey) return undefined;
+    const id = requestAnimationFrame(() => m.resize());
+    return () => cancelAnimationFrame(id);
+  }, [layoutKey]);
   useEffect(() => { if (map.current) map.current.getCanvas().style.cursor = drawing ? 'crosshair' : ''; }, [drawing]);
   // the page's Finish, Undo and Cancel buttons (and Escape) for a shape being drawn
   useEffect(() => { if (drawCmd?.op && drawApi.current) drawApi.current[drawCmd.op]?.(); }, [drawCmd]);
