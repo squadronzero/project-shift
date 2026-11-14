@@ -297,6 +297,24 @@ const T = {
     mapRecent: 'recent detections (raw FIRMS, not harmonised)',
   },
 
+  // ---------------------------------------------------------------- fullscreen map (14 Nov)
+  fullscreen: {
+    enter: (view) => (view === '3d' ? 'Enter fullscreen globe' : 'Enter fullscreen map'),
+    exit: (view) => (view === '3d' ? 'Exit fullscreen globe' : 'Exit fullscreen map'),
+    exitShort: 'Exit',
+    workspace: (view) => (view === '3d' ? 'Fullscreen globe' : 'Fullscreen map'),
+    windowNote: 'Filling the browser window (this browser does not allow full screen for part of a page).',
+    inspector: 'Research inspector',
+    inspectorShort: 'Inspector',
+    inspectorHint: 'Shows the harmonised values for the selected area and for any grid cell you choose on the map.',
+    noArea: 'No area selected. Search above, draw a shape, or choose a cell on the map.',
+    pickCell: 'Choose a grid cell on the map to see its harmonised values, source and range.',
+    pickRecent: 'Choose a detection on the map to see its satellite, time and fetch time.',
+    closeInspector: 'Close the research inspector',
+    back: 'Back to the full analysis',
+    aboutMap: 'About this map',
+  },
+
   // ---------------------------------------------------------------- weather context (D39, NASA POWER)
   // Context, never a cause: keep "notCause" visible wherever the weather is shown.
   weather: {
