@@ -6,6 +6,7 @@ import Explore from './pages/Explore.jsx';
 import Switch2012 from './pages/Switch2012.jsx';
 import Validation from './pages/Validation.jsx';
 import Method from './pages/Method.jsx';
+import { NavIcon } from './components/NavIcons.jsx';
 import { dateOf, json, lastDataDay } from './lib/data.js';
 
 import { readHash, writeHash } from './lib/url.js';
@@ -29,6 +30,7 @@ export default function App() {
   const [busy, setBusy] = useState(false);
   const [exploreKey, setExploreKey] = useState(0);
   const [brandNote, setBrandNote] = useState(null);
+  const [tipOff, setTipOff] = useState(false);      // Escape hides the nav tooltip
   // the Method page's "Open in Explore" buttons: open Explore with an area (and dates), no reload
   const [openParams, setOpenParams] = useState(null);
   const openExplore = (p) => { setOpenParams(p || {}); setExploreKey((k) => k + 1); setCurrent('explore'); window.scrollTo(0, 0); };
@@ -64,10 +66,17 @@ export default function App() {
           {recent?.latest_detection_utc && <span className={recentFreshness(recent)?.stale ? 'badge warn' : 'badge'}>{T.recentTo(recent.latest_detection_utc,
             recentFreshness(recent)?.stale)}</span>}
         </div>
-        <nav aria-label="Views">
+        {/* icon navigation (14 Nov): the page name is the button's accessible name, a tooltip on hover and keyboard focus
+            on wide screens, and a small caption under the icon on tablets and phones (no hover there). Escape hides the
+            tooltip until the pointer or focus moves on. Same buttons, same setCurrent, same destinations as before. */}
+        <nav aria-label="Views" className={tipOff ? 'iconnav tips-off' : 'iconnav'} onKeyDown={(e) => { if (e.key === 'Escape') setTipOff(true); }}
+          onPointerLeave={() => setTipOff(false)} onFocus={() => setTipOff(false)}>
           {VIEWS.map((id) => (
-            <button key={id} className={current === id ? 'tab on' : 'tab'} aria-current={current === id ? 'page' : undefined}
-              onClick={() => setCurrent(id)}>{T.views[id]}</button>
+            <button key={id} type="button" className={current === id ? 'tab on' : 'tab'} aria-current={current === id ? 'page' : undefined}
+              aria-label={T.views[id]} onClick={() => setCurrent(id)}>
+              <NavIcon id={id} />
+              <span className="tab-label" aria-hidden="true">{T.views[id]}</span>
+            </button>
           ))}
         </nav>
       </header>
